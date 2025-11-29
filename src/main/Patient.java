@@ -1,0 +1,121 @@
+package main;
+
+import structure.IData;
+
+import java.io.*;
+import java.time.LocalDate;
+
+public class Patient implements IData<Patient> {
+    private static final int NAME_LIMIT = 15;
+    private static final int SURNAME_LIMIT = 14;
+    private static final int ID_LIMIT = 10;
+    private String name;
+    private String surname;
+    private LocalDate dateOfBirth;
+    private String personID;
+
+    public Patient() {
+        this.name = "Default";
+        this.surname = "Default";
+        this.dateOfBirth = LocalDate.now();
+        this.personID = "000000";
+    }
+
+    public Patient(String name, String surname, LocalDate dateOfBirth, String personID) {
+        this.name = name;
+        this.surname = surname;
+        this.dateOfBirth = dateOfBirth;
+        this.personID = personID;
+    }
+
+    public String getPersonID() {
+        return this.personID;
+    }
+
+    @Override
+    public boolean equalsTo(Patient comparedData) {
+        return this.personID.compareTo(comparedData.getPersonID()) == 0;
+    }
+
+    @Override
+    public Patient createClass() {
+        return new Patient();
+//        return new Patient(this.name, this.surname, this.dateOfBirth, this.personID);
+    }
+
+    @Override
+    public int getSize() {
+        return Integer.BYTES + 2 + NAME_LIMIT +
+                Integer.BYTES + 2 + SURNAME_LIMIT +
+                Integer.BYTES * 3 +
+                Integer.BYTES + 2 + ID_LIMIT;
+    }
+
+    private String getFullString(String str, int maxLimit) {
+        if (str.length() >= maxLimit) {
+            return str.substring(0, maxLimit);
+        }
+        // doplnenie znakov, moze byt hocico do max poctu podla zadania
+        return str + "o".repeat(maxLimit - str.length());
+    }
+
+    // dlzka poli bude rovnaka, musi sa to rovnat getSize T
+    // string doplnime do max nejakymi znakmi, a za tym hned int pocet platnych znakov v stringu
+    @Override
+    public byte[] getBytes() {
+        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
+        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
+        try {
+            // stores valid chars in strings as ints + strings fill till max limit and date as 3 ints
+            hlpOutStream.writeInt(Math.min(this.name.length(), NAME_LIMIT));
+            hlpOutStream.writeUTF(this.getFullString(this.name, NAME_LIMIT));
+            hlpOutStream.writeInt(Math.min(this.surname.length(), SURNAME_LIMIT));
+            hlpOutStream.writeUTF(this.getFullString(this.surname, SURNAME_LIMIT));
+            hlpOutStream.writeInt(this.dateOfBirth.getDayOfMonth());
+            hlpOutStream.writeInt(this.dateOfBirth.getMonthValue());
+            hlpOutStream.writeInt(this.dateOfBirth.getYear());
+            hlpOutStream.writeInt(Math.min(this.personID.length(), ID_LIMIT));
+            hlpOutStream.writeUTF(this.getFullString(this.personID, ID_LIMIT));
+
+            return hlpByteArrayOutputStream.toByteArray();
+
+        } catch (IOException e){
+            throw new IllegalStateException("Error during conversion to byte array.");
+        }
+    }
+
+    @Override
+    public void fromBytes(byte[] array) {
+        ByteArrayInputStream hlpByteArrayInputStream = new ByteArrayInputStream(array);
+        DataInputStream hlpInStream = new DataInputStream(hlpByteArrayInputStream);
+        try {
+            int nameLen = hlpInStream.readInt();
+            String nameStr = hlpInStream.readUTF();
+            nameLen = Math.min(nameLen, nameStr.length());
+            this.name = nameStr.substring(0, nameLen);
+
+            int surnameLen = hlpInStream.readInt();
+            String surnameStr = hlpInStream.readUTF();
+            surnameLen = Math.min(surnameLen, surnameStr.length());
+            this.surname = surnameStr.substring(0, surnameLen);
+
+            int day = hlpInStream.readInt();
+            int month = hlpInStream.readInt();
+            int year = hlpInStream.readInt();
+            this.dateOfBirth = LocalDate.of(year, month, day);
+
+            int idLen = hlpInStream.readInt();
+            String idStr = hlpInStream.readUTF();
+            idLen = Math.min(idLen, idStr.length());
+            this.personID = idStr.substring(0, idLen);
+
+        } catch (IOException e) {
+            throw new IllegalStateException("Error during conversion from byte array.");
+        }
+    }
+
+    @Override
+    public String getOutput() {
+        return "Patient name: " + this.name + " " + this.surname + "  |  Date of birth: " + this.dateOfBirth + "  |  ID: " + this.personID;
+    }
+}
