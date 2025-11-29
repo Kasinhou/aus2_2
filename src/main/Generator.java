@@ -26,9 +26,7 @@ public class Generator {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
-//            System.out.println(patient.getOutput());
             this.heapFile.insert(patient);
-//            System.out.println("----------------------");
             ++i;
         }
         System.out.println(PEOPLE_COUNT + " Patients generated.");

@@ -44,6 +44,11 @@ public class Patient implements IData<Patient> {
     }
 
     @Override
+    public int getHashCode() {
+        return 0;//TODO hashforpatient
+    }
+
+    @Override
     public int getSize() {
         return Integer.BYTES + 2 + NAME_LIMIT +
                 Integer.BYTES + 2 + SURNAME_LIMIT +
