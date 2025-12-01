@@ -4,14 +4,26 @@ import structure.IData;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 public class PCRTest implements IData<PCRTest> {
+    private static final int ID_LIMIT = 10;
+    private static final int NOTE_LIMIT = 11;
     private LocalDateTime testDateTime;
     private String testPersonID;// max 10 chars
     private int testCode;
     private boolean testResult;
     private double testValue;
     private String note;//max 11 chars
+
+    public PCRTest() {
+        this.testDateTime = LocalDateTime.now();
+        this.testPersonID = "000000";
+        this.testCode = -1;
+        this.testResult = false;
+        this.testValue = -1;
+        this.note = "Default";
+    }
 
     public PCRTest(LocalDateTime testDateTime, String testPersonID, int testCode, boolean testResult, double testValue, String note) {
         this.testDateTime = testDateTime;
@@ -24,76 +36,85 @@ public class PCRTest implements IData<PCRTest> {
 
     @Override
     public boolean equalsTo(PCRTest comparedData) {
-        return false;
+        return this.testCode == comparedData.getTestCode();
+    }
+
+    private int getTestCode() {
+        return this.testCode;
     }
 
     @Override
     public PCRTest createClass() {
-        return null;
+        return new PCRTest();
     }
 
     @Override
     public int getHashCode() {
-        return 0;//TODO hashfortest
+        return Integer.hashCode(this.testCode);
     }
 
     @Override
     public int getSize() {
-        return 0;
+        return Long.BYTES +
+                Integer.BYTES + 2 + ID_LIMIT +
+                Integer.BYTES + 1 + Double.BYTES +
+                Integer.BYTES + 2 + NOTE_LIMIT;
+    }
+
+    private String getFullString(String str, int maxLimit) {
+        if (str.length() >= maxLimit) {
+            return str.substring(0, maxLimit);
+        }
+        return str + "o".repeat(maxLimit - str.length());
     }
 
     @Override
     public byte[] getBytes() {
-//        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
-//        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
-//        try {
-//            // stores valid chars in strings as ints + strings fill till max limit and date as 3 ints
-//            hlpOutStream.writeInt(Math.min(this.name.length(), NAME_LIMIT));
-//            hlpOutStream.writeUTF(this.getFullString(this.name, NAME_LIMIT));
-//            hlpOutStream.writeInt(Math.min(this.surname.length(), SURNAME_LIMIT));
-//            hlpOutStream.writeUTF(this.getFullString(this.surname, SURNAME_LIMIT));
-//            hlpOutStream.writeInt(this.dateOfBirth.getDayOfMonth());
-//            hlpOutStream.writeInt(this.dateOfBirth.getMonthValue());
-//            hlpOutStream.writeInt(this.dateOfBirth.getYear());
-//            hlpOutStream.writeInt(Math.min(this.personID.length(), ID_LIMIT));
-//            hlpOutStream.writeUTF(this.getFullString(this.personID, ID_LIMIT));
-//
-//            return hlpByteArrayOutputStream.toByteArray();
-//
-//        } catch (IOException e){
-//            throw new IllegalStateException("Error during conversion to byte array.");
-//        }
-        return null;
+        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
+        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
+        try {
+            long dateTimeLong = this.testDateTime.toEpochSecond(ZoneOffset.UTC);
+            hlpOutStream.writeLong(dateTimeLong);
+            hlpOutStream.writeInt(Math.min(this.testPersonID.length(), ID_LIMIT));
+            hlpOutStream.writeUTF(this.getFullString(this.testPersonID, ID_LIMIT));
+            hlpOutStream.writeInt(this.testCode);
+            hlpOutStream.writeBoolean(this.testResult);
+            hlpOutStream.writeDouble(this.testValue);
+            hlpOutStream.writeInt(Math.min(this.note.length(), NOTE_LIMIT));
+            hlpOutStream.writeUTF(this.getFullString(this.note, NOTE_LIMIT));
+
+            return hlpByteArrayOutputStream.toByteArray();
+
+        } catch (IOException e){
+            throw new IllegalStateException("Error during conversion to byte array.");
+        }
     }
 
     @Override
     public void fromBytes(byte[] from) {
         ByteArrayInputStream hlpByteArrayInputStream = new ByteArrayInputStream(from);
         DataInputStream hlpInStream = new DataInputStream(hlpByteArrayInputStream);
-//        try {
-//            int nameLen = hlpInStream.readInt();
-//            String nameStr = hlpInStream.readUTF();
-//            nameLen = Math.min(nameLen, nameStr.length());
-//            this.name = nameStr.substring(0, nameLen);
-//
-//            int surnameLen = hlpInStream.readInt();
-//            String surnameStr = hlpInStream.readUTF();
-//            surnameLen = Math.min(surnameLen, surnameStr.length());
-//            this.surname = surnameStr.substring(0, surnameLen);
-//
-//            int day = hlpInStream.readInt();
-//            int month = hlpInStream.readInt();
-//            int year = hlpInStream.readInt();
-//            this.dateOfBirth = LocalDate.of(year, month, day);
-//
-//            int idLen = hlpInStream.readInt();
-//            String idStr = hlpInStream.readUTF();
-//            idLen = Math.min(idLen, idStr.length());
-//            this.personID = idStr.substring(0, idLen);
-//
-//        } catch (IOException e) {
-//            throw new IllegalStateException("Error during conversion from byte array.");
-//        }
+        try {
+            long dateTimeLong = hlpInStream.readLong();
+            this.testDateTime = LocalDateTime.ofEpochSecond(dateTimeLong, 0, ZoneOffset.UTC);
+
+            int idLen = hlpInStream.readInt();
+            String idStr = hlpInStream.readUTF();
+            idLen = Math.min(idLen, idStr.length());
+            this.testPersonID = idStr.substring(0, idLen);
+
+            this.testCode = hlpInStream.readInt();
+            this.testResult = hlpInStream.readBoolean();
+            this.testValue = hlpInStream.readDouble();
+
+            int noteLen = hlpInStream.readInt();
+            String noteStr = hlpInStream.readUTF();
+            noteLen = Math.min(noteLen, noteStr.length());
+            this.note = noteStr.substring(0, noteLen);
+
+        } catch (IOException e) {
+            throw new IllegalStateException("Error during conversion from byte array.");
+        }
     }
 
     @Override

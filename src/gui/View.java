@@ -22,10 +22,15 @@ public class View extends JFrame {
     private JTextField testAddress;
 
     private JButton generateButton;
-//    private JButton saveButton;
-//    private JButton loadButton;
     private JButton clearButton;
     private JButton outputButton;
+    private JButton openButton;
+    private JButton loadButton;
+    private JButton closeButton;
+    private JButton testLinHashButton;
+    private JButton testHeapFileButton;
+
+
     private JButton insertPersonButton;
     private JButton getPersonButton;
     private JButton editPersonButton;
@@ -49,15 +54,28 @@ public class View extends JFrame {
         JPanel basicButtons = new JPanel();
         basicButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         this.generateButton = new JButton("Generate");
-//        this.saveButton = new JButton("Save");
-//        this.loadButton = new JButton("Load");
         this.clearButton = new JButton("Clear");
         this.outputButton = new JButton("Output All");
         basicButtons.add(this.generateButton);
-//        basicButtons.add(this.saveButton);
-//        basicButtons.add(this.loadButton);
         basicButtons.add(this.clearButton);
         basicButtons.add(this.outputButton);
+
+        JPanel fileButtons = new JPanel();
+        fileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        this.openButton = new JButton("Open");
+        this.loadButton = new JButton("Load");
+        this.closeButton = new JButton("Close");
+        fileButtons.add(this.openButton);
+        fileButtons.add(this.loadButton);
+        fileButtons.add(this.closeButton);
+
+        JPanel testButtons = new JPanel();
+        testButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        this.testLinHashButton = new JButton("Linear Hashing");
+        this.testHeapFileButton = new JButton("Heap File");
+        testButtons.add(new JLabel("TESTING"));
+        testButtons.add(this.testLinHashButton);
+        testButtons.add(this.testHeapFileButton);
 
         JPanel personInputs = new JPanel(new GridLayout(6, 2, 5, 5));
         personInputs.setBorder(BorderFactory.createTitledBorder("PERSON inputs"));
@@ -128,6 +146,8 @@ public class View extends JFrame {
         JScrollPane scrollPane = new JScrollPane(this.outputArea);
 
         leftPanel.add(basicButtons);
+        leftPanel.add(fileButtons);
+        leftPanel.add(testButtons);
         leftPanel.add(personInputs);
         leftPanel.add(actionPersonButtons);
         leftPanel.add(testInputs);
@@ -204,20 +224,32 @@ public class View extends JFrame {
         return this.generateButton;
     }
 
-//    public JButton getSaveButton() {
-//        return this.saveButton;
-//    }
-//
-//    public JButton getLoadButton() {
-//        return this.loadButton;
-//    }
-
     public JButton getClearButton() {
         return this.clearButton;
     }
 
     public JButton getOutputButton() {
         return this.outputButton;
+    }
+
+    public JButton getOpenButton() {
+        return this.openButton;
+    }
+
+    public JButton getLoadButton() {
+        return this.loadButton;
+    }
+
+    public JButton getCloseButton() {
+        return this.closeButton;
+    }
+
+    public JButton getTestLinHashButton() {
+        return this.testLinHashButton;
+    }
+
+    public JButton getTestHeapFileButton() {
+        return this.testHeapFileButton;
     }
 
     public JButton getInsertPersonButton() {

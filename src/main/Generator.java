@@ -5,28 +5,37 @@ import structure.HeapFile;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Generator {
-    private static final int PEOPLE_COUNT = 1000;
+    private static final int PEOPLE_COUNT = 100;
+    private static final int TESTS_COUNT = 1000;
 
-    private HeapFile<Patient> heapFile;
+    private HeapFile<Patient> hfPatients;
+    private HeapFile<PCRTest> hfTests;
     private Faker faker;
     private Set<String> peopleIDs;
+    private ArrayList<String> idsList;
+    private Set<Integer> testCodes;
 
-    public Generator(HeapFile<Patient> heapFile) {
+    public Generator(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests) {
         this.faker = new Faker();
         this.peopleIDs = new HashSet<>();
-        this.heapFile = heapFile;
+        this.idsList = new ArrayList<>();
+        this.testCodes = new HashSet<>();
+        this.hfPatients = hfPatients;
+        this.hfTests = hfTests;
     }
 
     public void generatePeople() {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
-            this.heapFile.insert(patient);
+            this.hfPatients.insert(patient);
             ++i;
         }
         System.out.println(PEOPLE_COUNT + " Patients generated.");
@@ -48,8 +57,51 @@ public class Generator {
 //            date = this.faker.date().birthday(5, 100).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         do {
             personID = this.faker.lorem().characters(1, 10, true, true);
-        } while (!this.peopleIDs.add(personID));
+        } while (!this.addedPersonID(personID));
 
         return new Patient(name, surname, date, personID);
+    }
+
+    public void generateTests() {
+        int i = 0;
+        while (i < TESTS_COUNT) {
+            PCRTest test = this.generateTest();
+            this.hfTests.insert(test);
+            ++i;
+        }
+        System.out.println(TESTS_COUNT + " Tests generated.");
+    }
+
+    public PCRTest generateTest() {
+        String personID, note;
+        LocalDateTime dateTime;
+        int testCode;
+        boolean testResult;
+        double testValue;
+        do {
+            testCode = this.faker.number().numberBetween(1, Integer.MAX_VALUE);
+        } while (!this.testCodes.add(testCode));
+        dateTime = faker.date().between(Date.valueOf("1945-01-01"), Date.valueOf("2025-11-21"))
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .withNano(0);
+        personID = this.idsList.get(this.faker.number().numberBetween(0, this.peopleIDs.size()));// TODO osetreit 6 max testov
+        testResult = this.faker.bool().bool();
+        testValue = testResult ? this.faker.number().randomDouble(2, 15, 30) : this.faker.number().randomDouble(2, 25, 45);
+        note = this.faker.medical().symptoms();
+        if (note.length() > 8) {
+            note = note.substring(0, 8) + "...";
+        }
+
+        return new PCRTest(dateTime, personID, testCode, testResult, testValue, note);
+    }
+
+    private boolean addedPersonID(String id) {
+        if (!this.peopleIDs.add(id)) {
+            return false;
+        }
+        this.idsList.add(id);
+        return true;
     }
 }

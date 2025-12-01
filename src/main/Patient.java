@@ -45,7 +45,7 @@ public class Patient implements IData<Patient> {
 
     @Override
     public int getHashCode() {
-        return 0;//TODO hashforpatient
+        return this.personID.hashCode();
     }
 
     @Override

@@ -7,7 +7,6 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class HeapFile<T extends IData<T>> {
-    private String pathToFile;
     private int clusterSize;
     private int blockFactor;
     private int blockSize;
@@ -18,18 +17,19 @@ public class HeapFile<T extends IData<T>> {
 
     private AVLTree<MyInteger> freeBlocks;
     private AVLTree<MyInteger> partiallyFreeBlocks;
+    private boolean freeBlocksManagement;
 
     private RandomAccessFile raf;
 
     private Class<T> classType;
 
-    public HeapFile(String pathToFile, int clusterSize, Class<T> classType) {
-        this.pathToFile = pathToFile;
+    public HeapFile(String pathToFile, int clusterSize, Class<T> classType, boolean freeBlocksManagement) {
         this.clusterSize = clusterSize;
 //        this.freeBlocks = new ArrayList<>();
 //        this.partiallyFreeBlocks = new ArrayList<>();
         this.freeBlocks = new AVLTree<>();
         this.partiallyFreeBlocks = new AVLTree<>();
+        this.freeBlocksManagement = freeBlocksManagement;
         this.classType = classType;
         try {
             T dummyData = this.classType.newInstance();
@@ -37,8 +37,8 @@ public class HeapFile<T extends IData<T>> {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        this.blockFactor = (this.clusterSize - Integer.BYTES) / this.sizeT;
-        this.blockSize = Integer.BYTES + this.sizeT * this.blockFactor;
+        this.blockFactor = (this.clusterSize - (2 * Integer.BYTES)) / this.sizeT;
+        this.blockSize = 2 * Integer.BYTES + this.sizeT * this.blockFactor;
         //vyratat blokovaci faktor - odpocitam najskor od velkosti clustra informacie o bloku, potom zvysok vydelim (celociselne) velkostou kolko ma jeden zaznam (getsize z T)
 //        this.blockingFactor = (this.clusterSize - blockinfo) / getsizeT;
         // urcit cestu k suboru a velkost clustra (kolko zabera blok na disku)
@@ -65,6 +65,14 @@ public class HeapFile<T extends IData<T>> {
         return count;
     }
 
+    public int getBlockFactor() {
+        return this.blockFactor;
+    }
+
+    public Block<T> getBlock(int blockAddress) {
+        return this.readBlock(blockAddress);
+    }
+
     /**
      *
      * @param data
@@ -73,10 +81,10 @@ public class HeapFile<T extends IData<T>> {
     public int insert(T data) {
         int blockAddress;
         Block<T> blockToInsert;
-        if (!this.partiallyFreeBlocks.isEmpty()) {
+        if (this.freeBlocksManagement && !this.partiallyFreeBlocks.isEmpty()) {
             blockAddress = this.partiallyFreeBlocks.findMinimum().getInteger();
-            blockToInsert = this.readBlock(blockAddress);//TODO upravit zoznamy
-        } else if (!this.freeBlocks.isEmpty()) {
+            blockToInsert = this.readBlock(blockAddress);
+        } else if (this.freeBlocksManagement && !this.freeBlocks.isEmpty()) {
             blockAddress = this.freeBlocks.findMinimum().getInteger();
             blockToInsert = this.readBlock(blockAddress);
             this.freeBlocks.delete(this.freeBlocks.findMinimum());
@@ -91,31 +99,21 @@ public class HeapFile<T extends IData<T>> {
                 throw new RuntimeException(e);
             }
             blockToInsert = new Block<>(this.blockFactor, this.classType);
-            if (this.blockFactor != 1) {
+            if (this.freeBlocksManagement && this.blockFactor != 1) {
                 this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
             }
         }
         blockToInsert.addData(data);
         this.writeBlock(blockAddress, blockToInsert.getBytes());
-//        this.raf.seek(blockAddress);
-//        byte[] blockBytes = blockToInsert.getBytes();
-//        this.raf.write(blockBytes);
-//
-//        //mozno skusit priradit hned ked pisem do suboru, nie oddelene
-//        int empty = this.clusterSize - blockBytes.length;
-//        if (empty > 0) {
-//            byte[] emptyBytes = new byte[empty];
-//            this.raf.write(emptyBytes);
-//        }
         
         // inde???
-        if (this.blockFactor != 1 && blockToInsert.getValidCount() == this.blockFactor) {
+        if (this.freeBlocksManagement && this.blockFactor != 1 && blockToInsert.getValidCount() == this.blockFactor) {
             this.partiallyFreeBlocks.delete(this.partiallyFreeBlocks.findMinimum());
         }
         return blockAddress;
     }
 
-    private Block<T> readBlock(int address) {
+    public Block<T> readBlock(int address) {
         Block<T> block = new Block<>(this.blockFactor, this.classType);
         try {
             this.raf.seek((long) address * this.clusterSize);
@@ -124,9 +122,7 @@ public class HeapFile<T extends IData<T>> {
             throw new RuntimeException(e);
         }
         byte[] readBytes = new byte[this.blockSize];
-//        for (int i = 0; i < this.blockSize; ++i) {
-//            readBytes[i] = this.raf.readByte();
-//        }
+
         try {
             this.raf.readFully(readBytes);
         } catch (IOException e) {
@@ -137,11 +133,10 @@ public class HeapFile<T extends IData<T>> {
         return block;
     }
 
-    private void writeBlock(int address, byte[] blockBytes) {
+    public void writeBlock(int address, byte[] blockBytes) {
         try {
             this.raf.seek((long) address * this.clusterSize);
             this.raf.write(blockBytes);
-
 
             //mozno skusit priradit hned ked pisem do suboru, nie oddelene
             int empty = this.clusterSize - blockBytes.length;
@@ -179,7 +174,9 @@ public class HeapFile<T extends IData<T>> {
         Block<T> block = this.readBlock(address);
         if (block.removeData(dummyData)) {
             this.writeBlock(address, block.getBytes());
-//            System.out.println("Zmazane data zapisane do suboru");
+            if (!this.freeBlocksManagement) {
+                return;//ak nemam tak uz netreba dalej riesit
+            }
             if (this.blockFactor == 1) {
                 this.freeBlocks.insert(new MyInteger(address));
             } else if (block.getValidCount() == 0) {
@@ -277,6 +274,7 @@ public class HeapFile<T extends IData<T>> {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("cluster size:").append(this.clusterSize).append(" | number of blocks: ").append(count);
+        sb.append("\nManagement of free blocks: ").append(this.freeBlocksManagement);
         sb.append("\nFree blocks [").append(this.freeBlocks.size()).append("] ");
         ArrayList<MyInteger> allFreeBlocks = this.freeBlocks.inOrder();
         for (MyInteger i : allFreeBlocks) {

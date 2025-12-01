@@ -5,10 +5,13 @@ import gui.Model;
 import gui.View;
 import structure.Block;
 import structure.HeapFile;
+import structure.LinearHashing;
+import test.Tester;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 /**
@@ -16,26 +19,14 @@ import java.util.Arrays;
  */
 public class Main {
     public static void main(String[] args) {
-//        String name = "Matus";
-//        System.out.println(name);
-//        name = name + "a".repeat(15 - name.length());
-//        System.out.println(name);
-//        name = name.substring(0, 5);
-//        System.out.println(name);
-//
-//        Patient ja = new Patient("Matúš", "Kasák", LocalDate.of(2002, 7, 30), "564331");
-//        byte[] array = ja.getBytes();
-//        System.out.println(Arrays.toString(array));
-//        ja.fromBytes(array);
-//        System.out.println(ja.getOutput());
-//
-//        Block<Patient> block = new Block<>(3, Patient.class);
-//        block.getDataArray();
-
-
 
         SwingUtilities.invokeLater(() -> {
-            HeapFile<Patient> heapFile = new HeapFile<>("patients.bin", 300, Patient.class);
+//            LinearHashing<Patient> linearHashing = new LinearHashing<>("patients.bin", 300, "tests.bin", 300, Patient.class);
+//            linearHashing.insert(new Patient("Matus", "Kasak", LocalDate.of(2002, 7, 30), "564331"));
+            HeapFile<Patient> heapFile = new HeapFile<>("patients.bin", 300, Patient.class, true);
+            HeapFile<PCRTest> hf = new HeapFile<>("tests.bin", 300, PCRTest.class, true);
+//            PCRTest test = new PCRTest(LocalDateTime.of(2002, 5, 5, 23, 55, 55), "dsa", 55, true, 25.25, "NOTE");
+//            System.out.println(test.getOutput());
 //            int a = heapFile.insert(new Patient("Matus", "Kasak", LocalDate.of(2002, 7, 30), "564331"));
 //            int b = heapFile.insert(new Patient("Eva", "Nizna", LocalDate.of(2001, 2, 21), "56111"));
 ////            System.out.println(heapFile.get(a, new Patient("", "", null, "564331")).getOutput());
@@ -61,8 +52,8 @@ public class Main {
 
             //            HeapFile<Patient> heapFile = new HeapFile<>("binFile.bin", 110, Patient.class);
             View view = new View();
-            Model model = new Model(heapFile);
-            Controller controller = new Controller(model, view, heapFile);
+            Model model = new Model(heapFile, hf);
+            Controller controller = new Controller(model, view, heapFile, hf, new Tester());
             view.setVisible(true);
 //            heapFile.close();
         });

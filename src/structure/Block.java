@@ -12,6 +12,8 @@ public class Block<T extends IData<T>> implements IRecord {
 
     private Class<T> classType;
 
+    private int indexToOverflow;
+
     // v OP si vytvorim instanciu bloku, naplnim si podla blockingFactor tento block, nacitam si zo streamu vsetky bajty, poslem to do fromBytes, rozdeli sa to podla Tciek, valid count, a zvysne zahodim
     // getbytes, prejde sa dataarray, kazde T sa prevedie cez getBytes na pole bajtov, vysklada sa pole bajtov a za tym pole bajtov ako integer valid count, k tomu si pridam bajty aby sa to rovnalo celkovemu poctu bajtov blocku
     public Block(int blockFactor, Class<T> classType) {
@@ -19,6 +21,7 @@ public class Block<T extends IData<T>> implements IRecord {
         this.dataArray = new ArrayList<>(this.blockFactor);
         this.validCount = 0;
         this.classType = classType;
+        this.indexToOverflow = -1;
         try {
             T dummyData = this.classType.newInstance();// namnozit konkretne instancie triedy T pomocou createClass
             this.sizeT = dummyData.getSize();
@@ -38,8 +41,16 @@ public class Block<T extends IData<T>> implements IRecord {
         return valid;
     }
 
-    public int getSizeT() {
-        return this.sizeT;
+    public boolean isFull() {
+        return this.validCount == this.blockFactor;
+    }
+
+    public void setIndexToOverflow(int address) {
+        this.indexToOverflow = address;
+    }
+
+    public int getIndexToOverflow() {
+        return this.indexToOverflow;
     }
 
     public int getValidCount() {
@@ -63,8 +74,6 @@ public class Block<T extends IData<T>> implements IRecord {
     public boolean removeData(T data) {
         for (int i = 0; i < this.validCount; ++i) {
             if (this.dataArray.get(i).equalsTo(data)) {
-//                T removed = this.dataArray.remove(i);
-//                this.dataArray.add(removed);
                 Collections.swap(this.dataArray, i, this.validCount - 1);
                 --this.validCount;
                 return true;
@@ -76,7 +85,7 @@ public class Block<T extends IData<T>> implements IRecord {
     @Override
     public int getSize() {
 //        size += zadefinovat si kolko bude mat info o bloku
-        return Integer.BYTES + this.blockFactor * this.sizeT;
+        return Integer.BYTES * 2 + this.blockFactor * this.sizeT;
     }
 
     @Override
@@ -85,6 +94,7 @@ public class Block<T extends IData<T>> implements IRecord {
         DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
         try {
             hlpOutStream.writeInt(this.validCount);
+            hlpOutStream.writeInt(this.indexToOverflow);
             for (T arrayT : this.dataArray) {
                 byte[] bytesT = arrayT.getBytes();
                 hlpOutStream.write(bytesT);
@@ -103,6 +113,7 @@ public class Block<T extends IData<T>> implements IRecord {
         DataInputStream hlpInStream = new DataInputStream(hlpByteArrayInputStream);
         try {
             this.validCount = hlpInStream.readInt();
+            this.indexToOverflow = hlpInStream.readInt();
             for (int i = 0; i < this.blockFactor; ++i) {
                 byte[] bytesT = new byte[this.sizeT];
                 hlpInStream.readFully(bytesT);

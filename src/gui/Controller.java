@@ -1,7 +1,9 @@
 package gui;
 import main.Generator;
+import main.PCRTest;
 import main.Patient;
 import structure.HeapFile;
+import test.Tester;
 
 import java.time.LocalDate;
 
@@ -11,23 +13,30 @@ import java.time.LocalDate;
 public class Controller {
     private Model model;
     private View view;
-    private HeapFile<Patient> heapFile;
+    private HeapFile<Patient> hfPatients;
+    private HeapFile<PCRTest> hfTests;
     private Generator generator;
+    private Tester tester;
 
-    public Controller(Model model, View view, HeapFile<Patient> heapFile) {
+    public Controller(Model model, View view, HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests, Tester tester) {
         this.model = model;
         this.view = view;
-        this.heapFile = heapFile;
-        this.generator = new Generator(this.heapFile);
+        this.hfPatients = hfPatients;
+        this.hfTests = hfTests;
+        this.generator = new Generator(this.hfPatients, this.hfTests);
+        this.tester = tester;
         this.createMainWindow();
     }
 
     private void createMainWindow() {
         this.view.getGenerateButton().addActionListener(e -> this.handleGenerateButton());
-//        this.view.getSaveButton().addActionListener(e -> this.handleSaveButton());
-//        this.view.getLoadButton().addActionListener(e -> this.handleLoadButton());
         this.view.getClearButton().addActionListener(e -> this.handleClearButton());
         this.view.getOutputButton().addActionListener(e -> this.handleOutputButton());
+        this.view.getOpenButton().addActionListener(e -> this.handleOpenButton());
+        this.view.getLoadButton().addActionListener(e -> this.handleLoadButton());
+        this.view.getCloseButton().addActionListener(e -> this.handleCloseButton());
+        this.view.getTestLinHashButton().addActionListener(e -> this.handleTestLHButton());
+        this.view.getTestHeapFileButton().addActionListener(e -> this.handleTestHFButton());
         this.view.getInsertPersonButton().addActionListener(e -> this.handleInsertPersonButton());
         this.view.getGetPersonButton().addActionListener(e -> this.handleGetPersonButton());
         this.view.getEditPersonButton().addActionListener(e -> this.handleEditPersonButton());
@@ -40,17 +49,8 @@ public class Controller {
 
     private void handleGenerateButton() {
         this.generator.generatePeople();
+        this.generator.generateTests();
     }
-
-//    private void handleSaveButton() {
-//        String message = "SAVE is not implemented yet";
-//        this.view.getOutputArea().setText(message);
-//    }
-//
-//    private void handleLoadButton() {
-//        String message = "LOAD is not implemented yet";
-//        this.view.getOutputArea().setText(message);
-//    }
 
     private void handleClearButton() {
         this.view.getOutputArea().setText("");
@@ -58,7 +58,34 @@ public class Controller {
     }
 
     private void handleOutputButton() {
+//        String message = this.model.getAllTestsOutput();
         String message = this.model.getAllOutput();
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleOpenButton() {
+        String message = this.model.openNewFile();
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleLoadButton() {
+        String message = this.model.loadFile();
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleCloseButton() {
+        String message = this.model.closeFile();
+        this.view.getOutputArea().setText("Loading file not implemented. Add load method.");
+    }
+
+
+    private void handleTestLHButton() {
+        String message = this.tester.testLinearHashing();
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleTestHFButton() {
+        String message = this.tester.testHeapFile();
         this.view.getOutputArea().setText(message);
     }
 
