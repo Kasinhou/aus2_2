@@ -22,7 +22,7 @@ public class Generator {
     private ArrayList<String> idsList;
     private Set<Integer> testCodes;
 
-    public Generator(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests) {
+    public Generator(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests) {//TODO pridat linear hash?
         this.faker = new Faker();
         this.peopleIDs = new HashSet<>();
         this.idsList = new ArrayList<>();

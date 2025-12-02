@@ -3,6 +3,7 @@ package test;
 import main.Generator;
 import main.Patient;
 import structure.HeapFile;
+import structure.LinearHashing;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -22,9 +23,10 @@ public class Tester {
         ArrayList<Patient> patients = new ArrayList<>();
         ArrayList<Integer> addresses = new ArrayList<>();
         int insertCount = 0, deleteCount = 0, getCount = 0;
+        Random random = new Random();
         for (int s = 0; s < 10; ++s) {
+            random.setSeed(s);
 //                System.out.println(s);
-            Random random = new Random(s);//ma zmysel davat rozne seedy?
             for (int i = 0; i < 1500; ++i) {
                 double r = random.nextDouble();
                 if (r < 0.2) {//GET
@@ -36,7 +38,7 @@ public class Tester {
                             new Patient("", "", null, patients.get(getIndex).getPersonID()));
                     if (findPatient == null || !findPatient.getPersonID().equals(patients.get(getIndex).getPersonID())
                             || !findPatient.getOutput().equals(patients.get(getIndex).getOutput())) {
-                        sb.append("Index = ").append(i).append("\nGet method did not found the right Patient compared with ids.");
+                        sb.append("Index = ").append(i).append("\nGet method in heapfile did not found the right Patient compared with ids.");
                     }
                     ++getCount;
                 } else if (r < 0.7) {//DELETE
@@ -50,7 +52,7 @@ public class Tester {
                         deleted = heapFile.get(addresses.get(deleteIndex), new Patient("", "", null, patients.get(deleteIndex).getPersonID()));
                     }
                     if (deleted != null) {
-                        sb.append("Index = ").append(i).append("\nDeleted patient is not actually deleted, get did found deleted on the address still valid.");
+                        sb.append("Index = ").append(i).append("\nDeleted patient in heapfile is not actually deleted, get did found deleted on the address still valid.");
                     }
                     patients.remove(deleteIndex);
                     addresses.remove(deleteIndex);
@@ -60,7 +62,7 @@ public class Tester {
                     int address = heapFile.insert(patient);
                     Patient inserted = heapFile.get(address, new Patient("", "", null, patient.getPersonID()));
                     if (inserted == null || !patient.getOutput().equals(inserted.getOutput())) {
-                        sb.append("Index = ").append(i).append("\nInserted patient is not actually inserted, get did not found inserted on the good address.");
+                        sb.append("Index = ").append(i).append("\nInserted patient in heapfile is not actually inserted, get did not found inserted on the good address.");
                     }
                     patients.add(patient);
                     addresses.add(address);
@@ -69,7 +71,7 @@ public class Tester {
                 if (i % 900 == 0) {
                     ArrayList<Patient> validData = heapFile.getAllValidData();
                     if (validData.size() != patients.size() || validData.size() != addresses.size()) {
-                        sb.append("\nSize of valid data in block is not equal the size of patients in tester!");
+                        sb.append("\nSize of valid data in heapfile is not equal the size of patients in tester!");
                     }
 
                     List<String> insertedPatients = patients.stream().map(Patient::getOutput).toList();
@@ -95,7 +97,60 @@ public class Tester {
     public String testLinearHashing() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING LINEAR HASHING ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        sb.append("NOT IMPLEMENTED YET!");
+        sb.append("NOT IMPLEMENTED YET!\n\n");
+        LinearHashing<Patient> linHash = new LinearHashing<>("mainFile.bin", 250, "overflowFile.bin", 200, Patient.class);
+        ArrayList<Patient> patients = new ArrayList<>();
+        Generator generator = new Generator(null, null);
+        int insertCount = 0, deleteCount = 0, getCount = 0;
+        Random random = new Random();
+        for (int s = 0; s < 10; ++s) {
+            random.setSeed(s);
+            for (int i = 0; i < 1500; ++i) {
+                double r = random.nextDouble();
+                if (r < 0.35) {//GET
+                    if (patients.isEmpty()) {
+                        continue;
+                    }
+                    int getIndex = random.nextInt(patients.size());
+                    Patient findPatient = linHash.get(new Patient("", "", null, patients.get(getIndex).getPersonID()));
+                    if (findPatient == null || !findPatient.getPersonID().equals(patients.get(getIndex).getPersonID())
+                            || !findPatient.getOutput().equals(patients.get(getIndex).getOutput())) {
+                        sb.append("Index = ").append(i).append("\nGet method in linear hashing did not found the right Patient compared with ids.");
+                    }
+                    ++getCount;
+
+                } else if (r < 0.35) { //DELETE - zatial neimplementovany
+                } else {//INSERT
+                    Patient patient = generator.generatePatient();
+                    int address = linHash.insert(patient);//treba vytahovat adresu odtialto?
+                    Patient inserted = linHash.get(new Patient("", "", null, patient.getPersonID()));
+                    if (inserted == null || !patient.getOutput().equals(inserted.getOutput())) {
+                        sb.append("Index = ").append(i).append("\nInserted patient in linear hashing is not actually inserted, or is inserted incorrect, get did not found inserted data.");
+                    }
+                    patients.add(patient);
+                    ++insertCount;
+                }
+                if (i % 900 == 0) {
+                    ArrayList<Patient> validData = linHash.getAllValidData();
+                    if (validData.size() != patients.size()) {
+                        sb.append("Index = ").append(i).append("\nSize of valid data in linear hashing is not equal the size of patients in tester!");
+                    }
+
+                    List<String> insertedPatients = patients.stream().map(Patient::getOutput).toList();
+                    List<String> validPatients = validData.stream().map(Patient::getOutput).toList();
+                    for (String patient : insertedPatients) {
+                        if (!validPatients.contains(patient)) {
+                            sb.append("Index = ").append(i).append("\n").append(patient).append(" is not in list of patients in tester. Something is wrong.");
+                        }
+                    }
+                }
+            }
+        }
+        sb.append("\nNumber of insertion: ").append(insertCount);
+        sb.append("\nNumber of deletion: ").append(deleteCount);
+        sb.append("\nNumber of get: ").append(getCount);
+        sb.append("\nNumber of valid data: ").append(linHash.getAllValidData().size());
+        sb.append("\nNumber of patients: ").append(patients.size());
         return sb.toString();
     }
 }

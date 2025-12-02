@@ -130,6 +130,7 @@ public class Block<T extends IData<T>> implements IRecord {
         StringBuilder sb = new StringBuilder();
         sb.append("Valid count: ").append(this.validCount);
         sb.append("    |    Block factor: ").append(this.blockFactor);
+        sb.append("    |    Index to next overflow: ").append(this.indexToOverflow);
         sb.append("\n---valid data---");
         for (int i = 0; i < this.blockFactor; ++i) {
             if (i == this.validCount) {

@@ -92,23 +92,21 @@ public class HeapFile<T extends IData<T>> {
                 this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
             }
         } else {
-            try {
-                blockAddress = (int) (this.raf.length() / this.clusterSize);
-            } catch (IOException e) {
-                System.out.println("Problem with raf length in insert.");
-                throw new RuntimeException(e);
-            }
-            blockToInsert = new Block<>(this.blockFactor, this.classType);
-            if (this.freeBlocksManagement && this.blockFactor != 1) {
-                this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
-            }
+            return this.writeNewBlock(data);
         }
         blockToInsert.addData(data);
         this.writeBlock(blockAddress, blockToInsert.getBytes());
-        
-        // inde???
-        if (this.freeBlocksManagement && this.blockFactor != 1 && blockToInsert.getValidCount() == this.blockFactor) {
-            this.partiallyFreeBlocks.delete(this.partiallyFreeBlocks.findMinimum());
+
+        return blockAddress;
+    }
+
+    public int writeNewBlock(T data) {
+        Block<T> block = new Block<>(this.blockFactor, this.classType);
+        int blockAddress = this.getBlockCount();
+        block.addData(data);
+        this.writeBlock(blockAddress, block.getBytes());
+        if (this.freeBlocksManagement && this.blockFactor != 1) {
+            this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
         }
         return blockAddress;
     }
@@ -148,6 +146,11 @@ public class HeapFile<T extends IData<T>> {
             System.out.println("Problem in writeBlock.");
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
+        }
+        Block<T> block = new Block<>(this.blockFactor, this.classType);
+        block.fromBytes(blockBytes);
+        if (this.freeBlocksManagement && this.blockFactor != 1 && block.isFull()) {
+            this.partiallyFreeBlocks.delete(this.partiallyFreeBlocks.findMinimum());
         }
     }
 

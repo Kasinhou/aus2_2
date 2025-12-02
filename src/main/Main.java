@@ -21,8 +21,9 @@ public class Main {
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(() -> {
-//            LinearHashing<Patient> linearHashing = new LinearHashing<>("patients.bin", 300, "tests.bin", 300, Patient.class);
-//            linearHashing.insert(new Patient("Matus", "Kasak", LocalDate.of(2002, 7, 30), "564331"));
+            LinearHashing<Patient> lhPatients = new LinearHashing<>("mainPatients.bin", 300, "overflowPatients.bin", 200, Patient.class);
+            LinearHashing<PCRTest> lhTests = new LinearHashing<>("mainTests.bin", 300, "overflowTests.bin", 200, PCRTest.class);
+            lhPatients.insert(new Patient("Matus", "Kasak", LocalDate.of(2002, 7, 30), "564331"));
             HeapFile<Patient> heapFile = new HeapFile<>("patients.bin", 300, Patient.class, true);
             HeapFile<PCRTest> hf = new HeapFile<>("tests.bin", 300, PCRTest.class, true);
 //            PCRTest test = new PCRTest(LocalDateTime.of(2002, 5, 5, 23, 55, 55), "dsa", 55, true, 25.25, "NOTE");
@@ -52,7 +53,7 @@ public class Main {
 
             //            HeapFile<Patient> heapFile = new HeapFile<>("binFile.bin", 110, Patient.class);
             View view = new View();
-            Model model = new Model(heapFile, hf);
+            Model model = new Model(heapFile, hf, lhPatients, lhTests);
             Controller controller = new Controller(model, view, heapFile, hf, new Tester());
             view.setVisible(true);
 //            heapFile.close();

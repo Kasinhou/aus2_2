@@ -3,16 +3,21 @@ package gui;
 import main.PCRTest;
 import main.Patient;
 import structure.HeapFile;
+import structure.LinearHashing;
 
 import java.time.LocalDate;
 
 public class Model {
     private HeapFile<Patient> hfPatients;
     private HeapFile<PCRTest> hfTests;
+    private LinearHashing<Patient> lhPatients;
+    private LinearHashing<PCRTest> lhTests;
 
-    public Model(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests) {
+    public Model(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests, LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
         this.hfPatients = hfPatients;
         this.hfTests = hfTests;
+        this.lhPatients = lhPatients;
+        this.lhTests = lhTests;
     }
 
     public String insertPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
@@ -22,7 +27,8 @@ public class Model {
         if (name.length() > 15 || surname.length() > 14 || personID.length() > 10) {
             return "Change according max limit of characters:\nName = 15\nSurname = 14\nID = 10";
         }
-        int address = this.hfPatients.insert(new Patient(name, surname, dateOfBirth, personID));
+        //TODO do coho vkladat, asi linhash
+        int address = this.lhPatients.insert(new Patient(name, surname, dateOfBirth, personID));
         return "Patient with id " + personID + " inserted to block " + address;
     }
 
@@ -52,7 +58,8 @@ public class Model {
     }
 
     public String getAllOutput() {
-        return this.hfPatients.getAllOutput();
+//        return this.hfPatients.getAllOutput();
+        return lhPatients.getOutput();
     }
 
     public String getAllTestsOutput() {
