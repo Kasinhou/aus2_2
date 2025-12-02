@@ -102,14 +102,14 @@ public class Controller {
     }
 
     private void handleGetPersonButton() {
-        int address;
-        try {
-            address = Integer.parseInt(this.view.getPersonAddress());
-        } catch (NumberFormatException e) {
-            this.view.getOutputArea().setText("Use integer for address.");
-            return;
-        }
-        String message = this.model.getPatient(address, this.view.getPersonID());
+//        int address;
+//        try {
+//            address = Integer.parseInt(this.view.getPersonAddress());
+//        } catch (NumberFormatException e) {
+//            this.view.getOutputArea().setText("Use integer for address.");
+//            return;
+//        }
+        String message = this.model.getPatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 

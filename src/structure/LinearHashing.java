@@ -29,7 +29,7 @@ public class LinearHashing<T extends IData<T>> {
     //TODO isto int?
     public int insert(T data) {
         int hashCode = data.getHashCode();
-        System.out.println("Hash code " + hashCode);
+//        System.out.println("Hash code " + hashCode);
         int blockAddress = Math.floorMod(hashCode, this.blockGroupSize * (1 << this.level));
         if (blockAddress < this.splitPointer) {
             blockAddress = Math.floorMod(hashCode, this.blockGroupSize * (1 << (this.level + 1)));
@@ -82,7 +82,7 @@ public class LinearHashing<T extends IData<T>> {
 
     private void splitBlock() {
         if (this.getDensity() < 0.8) {
-            System.out.println("NOT split");
+//            System.out.println("NOT split");
             return;
         }
         Block<T> newBlock = new Block<>(this.mainFile.getBlockFactor(), this.classType);
@@ -135,6 +135,22 @@ public class LinearHashing<T extends IData<T>> {
         if (blockAddress < this.splitPointer) {
             blockAddress = Math.floorMod(hashCode, this.blockGroupSize * (1 << (this.level + 1)));
         }
+
+        Block<T> block = this.mainFile.getBlock(blockAddress);
+        T foundData = this.mainFile.get(blockAddress, data);
+        if (foundData != null) {
+            return foundData;
+        }
+        int indexToOverflow = block.getIndexToOverflow();
+        while (indexToOverflow != -1) {
+            foundData = this.overflowFile.get(indexToOverflow, data);
+            if (foundData != null) {
+                return foundData;
+            }
+            indexToOverflow = this.overflowFile.getBlock(indexToOverflow).getIndexToOverflow();
+        }
+
+
         return null;
     }
 

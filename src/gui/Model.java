@@ -32,16 +32,16 @@ public class Model {
         return "Patient with id " + personID + " inserted to block " + address;
     }
 
-    public String getPatient(int blockAddress, String personID) {
+    public String getPatient(String personID) {
         if (personID.length() > 10 || personID.isEmpty()) {
             return "ID should have min 1 and max 10 characters.";
         }
-        if (blockAddress >= this.hfPatients.getBlockCount()) {
-            return "Block address out of range of HeapFile.";
-        }
-        Patient patient = this.hfPatients.get(blockAddress, new Patient("", "", null, personID));
+//        if (blockAddress >= this.hfPatients.getBlockCount()) {
+//            return "Block address out of range of HeapFile.";
+//        }
+        Patient patient = this.lhPatients.get(new Patient("", "", null, personID));
         if (patient == null) {
-            return "Patient with id " + personID + " was not found in block " + blockAddress;
+            return "Patient with id " + personID + " was not found";
         }
         return patient.getOutput();
     }

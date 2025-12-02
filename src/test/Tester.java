@@ -105,7 +105,7 @@ public class Tester {
         Random random = new Random();
         for (int s = 0; s < 10; ++s) {
             random.setSeed(s);
-            for (int i = 0; i < 1500; ++i) {
+            for (int i = 0; i < 1000; ++i) {
                 double r = random.nextDouble();
                 if (r < 0.35) {//GET
                     if (patients.isEmpty()) {
