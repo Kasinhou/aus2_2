@@ -14,8 +14,6 @@ public class Block<T extends IData<T>> implements IRecord {
 
     private int indexToOverflow;
 
-    // v OP si vytvorim instanciu bloku, naplnim si podla blockingFactor tento block, nacitam si zo streamu vsetky bajty, poslem to do fromBytes, rozdeli sa to podla Tciek, valid count, a zvysne zahodim
-    // getbytes, prejde sa dataarray, kazde T sa prevedie cez getBytes na pole bajtov, vysklada sa pole bajtov a za tym pole bajtov ako integer valid count, k tomu si pridam bajty aby sa to rovnalo celkovemu poctu bajtov blocku
     public Block(int blockFactor, Class<T> classType) {
         this.blockFactor = blockFactor;
         this.dataArray = new ArrayList<>(this.blockFactor);

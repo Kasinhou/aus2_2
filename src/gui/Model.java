@@ -36,14 +36,15 @@ public class Model {
         if (personID.length() > 10 || personID.isEmpty()) {
             return "ID should have min 1 and max 10 characters.";
         }
-//        if (blockAddress >= this.hfPatients.getBlockCount()) {
-//            return "Block address out of range of HeapFile.";
-//        }
         Patient patient = this.lhPatients.get(new Patient("", "", null, personID));
         if (patient == null) {
             return "Patient with id " + personID + " was not found";
         }
         return patient.getOutput();
+    }
+
+    public String editPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
+        return "Not implemented yet";
     }
 
     public String deletePatient(int blockAddress, String personID) {
@@ -62,12 +63,10 @@ public class Model {
         return lhPatients.getOutput();
     }
 
-    public String getAllTestsOutput() {
-        return this.hfTests.getAllOutput();
-    }
-
     public String openNewFile() {
-        return "Opening file not implemented. Refactor constructor.";
+        this.lhPatients.open();
+        this.lhTests.open();
+        return "Opening patients and tests files.";
     }
 
     public String loadFile() {
@@ -75,8 +74,8 @@ public class Model {
     }
 
     public String closeFile() {
-        this.hfPatients.close();
-        this.hfTests.close();
-        return "Closing both files";
+        this.lhPatients.close();
+        this.lhTests.close();
+        return "Closing both Linear Hashing files";
     }
 }

@@ -75,7 +75,7 @@ public class Controller {
 
     private void handleCloseButton() {
         String message = this.model.closeFile();
-        this.view.getOutputArea().setText("Loading file not implemented. Add load method.");
+        this.view.getOutputArea().setText(message);
     }
 
 
@@ -102,19 +102,12 @@ public class Controller {
     }
 
     private void handleGetPersonButton() {
-//        int address;
-//        try {
-//            address = Integer.parseInt(this.view.getPersonAddress());
-//        } catch (NumberFormatException e) {
-//            this.view.getOutputArea().setText("Use integer for address.");
-//            return;
-//        }
         String message = this.model.getPatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleEditPersonButton() {
-        String message = "Edit patient is not implemented yet";
+        String message = this.model.editPatient("", "", null, "");
         this.view.getOutputArea().setText(message);
     }
 

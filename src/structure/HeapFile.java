@@ -7,13 +7,11 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class HeapFile<T extends IData<T>> {
+    private String path;
     private int clusterSize;
     private int blockFactor;
     private int blockSize;
     private int sizeT;
-
-//    private ArrayList<Integer> freeBlocks;
-//    private ArrayList<Integer> partiallyFreeBlocks;
 
     private AVLTree<MyInteger> freeBlocks;
     private AVLTree<MyInteger> partiallyFreeBlocks;
@@ -24,9 +22,8 @@ public class HeapFile<T extends IData<T>> {
     private Class<T> classType;
 
     public HeapFile(String pathToFile, int clusterSize, Class<T> classType, boolean freeBlocksManagement) {
+        this.path = pathToFile;
         this.clusterSize = clusterSize;
-//        this.freeBlocks = new ArrayList<>();
-//        this.partiallyFreeBlocks = new ArrayList<>();
         this.freeBlocks = new AVLTree<>();
         this.partiallyFreeBlocks = new AVLTree<>();
         this.freeBlocksManagement = freeBlocksManagement;
@@ -39,19 +36,26 @@ public class HeapFile<T extends IData<T>> {
         }
         this.blockFactor = (this.clusterSize - (2 * Integer.BYTES)) / this.sizeT;
         this.blockSize = 2 * Integer.BYTES + this.sizeT * this.blockFactor;
-        //vyratat blokovaci faktor - odpocitam najskor od velkosti clustra informacie o bloku, potom zvysok vydelim (celociselne) velkostou kolko ma jeden zaznam (getsize z T)
-//        this.blockingFactor = (this.clusterSize - blockinfo) / getsizeT;
-        // urcit cestu k suboru a velkost clustra (kolko zabera blok na disku)
+    }
 
+    public void open() {
         try {
-            this.raf = new RandomAccessFile(pathToFile, "rw");
-            this.raf.setLength(0);//TODO ak sa bude nacitavat tak zrusit
+            this.raf = new RandomAccessFile(path, "rw");
+            this.raf.setLength(0);
         } catch (FileNotFoundException e) {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int getBlockFactor() {
+        return this.blockFactor;
+    }
+
+    public Block<T> getBlock(int blockAddress) {
+        return this.readBlock(blockAddress);
     }
 
     public int getBlockCount() {
@@ -63,14 +67,6 @@ public class HeapFile<T extends IData<T>> {
             throw new RuntimeException(e);
         }
         return count;
-    }
-
-    public int getBlockFactor() {
-        return this.blockFactor;
-    }
-
-    public Block<T> getBlock(int blockAddress) {
-        return this.readBlock(blockAddress);
     }
 
     /**
@@ -100,17 +96,6 @@ public class HeapFile<T extends IData<T>> {
         return blockAddress;
     }
 
-    public int writeNewBlock(T data) {
-        Block<T> block = new Block<>(this.blockFactor, this.classType);
-        int blockAddress = this.getBlockCount();
-        block.addData(data);
-        this.writeBlock(blockAddress, block.getBytes());
-        if (this.freeBlocksManagement && this.blockFactor != 1) {
-            this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
-        }
-        return blockAddress;
-    }
-
     public Block<T> readBlock(int address) {
         Block<T> block = new Block<>(this.blockFactor, this.classType);
         try {
@@ -131,6 +116,19 @@ public class HeapFile<T extends IData<T>> {
         return block;
     }
 
+
+    public int writeNewBlock(T data) {
+        Block<T> block = new Block<>(this.blockFactor, this.classType);
+        int blockAddress = this.getBlockCount();
+        block.addData(data);
+        this.writeBlock(blockAddress, block.getBytes());
+        if (this.freeBlocksManagement && this.blockFactor != 1) {
+            this.partiallyFreeBlocks.insert(new MyInteger(blockAddress));
+        }
+        return blockAddress;
+    }
+
+    //upravit management rovno tu?
     public void writeBlock(int address, byte[] blockBytes) {
         try {
             this.raf.seek((long) address * this.clusterSize);
@@ -160,7 +158,6 @@ public class HeapFile<T extends IData<T>> {
      * @return
      */
     public T get(int address, T dummyData) {
-//        this.raf.seek(address * velkostbloku); celkovo velkost bloku zoberiem
         Block<T> block = this.readBlock(address);
         return block.findData(dummyData);
     }
@@ -171,9 +168,6 @@ public class HeapFile<T extends IData<T>> {
      * @return bud T alebo true false
      */
     public void delete(int address, T dummyData) {
-        // naseekujem sa na adresu bloku, precitam pole bajtov reprezentujuci ten blok na disku
-        // v operacnej pamati Block, poslem tie bajty from bytes, rozkusuje sa mi to na T, pridam/nacitam aj s valid count
-        //delete zapise to pole bajtov po zmazani naspat
         Block<T> block = this.readBlock(address);
         if (block.removeData(dummyData)) {
             this.writeBlock(address, block.getBytes());
@@ -191,21 +185,14 @@ public class HeapFile<T extends IData<T>> {
         } else {
             System.out.println("Something is wrong with writing to raf after deletion");
         }
-        try {
-            if (address == (this.raf.length() / this.clusterSize) - 1 && block.getValidCount() == 0) {
-                this.handleFreeBlocks(address);
-            }
-        } catch (IOException e) {
-            System.out.println("Something is wrong with deleting free blocks.");
-            throw new RuntimeException(e);
+        if (address == (this.getBlockCount() - 1) && block.getValidCount() == 0) {
+            this.handleFreeBlocks(address);
         }
     }
 
     // vyriesenie volnych blokov na konci suboru
     private void handleFreeBlocks(int lastBlock) {
-//        Collections.sort(this.freeBlocks);
         ArrayList<MyInteger> allFreeBlocks = this.freeBlocks.inOrder();
-//        if (lastBlock != this.freeBlocks.findMaximum().getInteger()) {
         if (lastBlock != (allFreeBlocks.get(allFreeBlocks.size() - 1)).getInteger()) {
             System.out.println("Something is wrong with addresses in free blocks array.");
         }
@@ -231,11 +218,27 @@ public class HeapFile<T extends IData<T>> {
         }
     }
 
+    public void setBlockAsFree(int blockAddress) {
+        if (!this.freeBlocksManagement) {
+            return;
+        }
+        this.freeBlocks.insert(new MyInteger(blockAddress));
+        this.partiallyFreeBlocks.delete(new MyInteger(blockAddress));
+
+        if (blockAddress == this.getBlockCount() - 1) {
+            this.handleFreeBlocks(blockAddress);
+        }
+    }
+
+    public void load() {
+
+    }
+
     public void close() {
-        System.out.println(this.partiallyFreeBlocks);
-        System.out.println(this.freeBlocks);
-        System.out.println(this.clusterSize);
-        System.out.println(this.blockFactor);
+//        System.out.println(this.partiallyFreeBlocks);
+//        System.out.println(this.freeBlocks);
+//        System.out.println(this.clusterSize);
+//        System.out.println(this.blockFactor);
         try {
             RandomAccessFile fileInfo = new RandomAccessFile("infoOP.bin", "rw");
             byte[] infoBytes = getInfoBytes();
