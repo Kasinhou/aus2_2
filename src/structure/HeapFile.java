@@ -223,8 +223,11 @@ public class HeapFile<T extends IData<T>> {
             return;
         }
         this.freeBlocks.insert(new MyInteger(blockAddress));
-        this.partiallyFreeBlocks.delete(new MyInteger(blockAddress));
+        if (this.blockFactor != 1) {
+            this.partiallyFreeBlocks.delete(new MyInteger(blockAddress));
+        }
 
+        //isto tu? lebo v linhash zapisujem blok
         if (blockAddress == this.getBlockCount() - 1) {
             this.handleFreeBlocks(blockAddress);
         }

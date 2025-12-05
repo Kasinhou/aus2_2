@@ -20,7 +20,7 @@ public class Tester {
         sb.append("TESTING HEAP FILE ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
         HeapFile<Patient> heapFile = new HeapFile<>("testHeapFile.bin", 300, Patient.class, true);
         heapFile.open();
-        Generator generator = new Generator(heapFile, null);
+        Generator generator = new Generator(null, null);
         ArrayList<Patient> patients = new ArrayList<>();
         ArrayList<Integer> addresses = new ArrayList<>();
         int insertCount = 0, deleteCount = 0, getCount = 0;

@@ -4,6 +4,7 @@ import structure.IData;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.util.Arrays;
 
 public class Patient implements IData<Patient> {
     private static final int NAME_LIMIT = 15;
@@ -13,12 +14,14 @@ public class Patient implements IData<Patient> {
     private String surname;
     private LocalDate dateOfBirth;
     private String personID;
+    private int[] tests;//TODO testy max 6, ulozit do suboru, -1 neplatne?
 
     public Patient() {
         this.name = "Default";
         this.surname = "Default";
         this.dateOfBirth = LocalDate.now();
         this.personID = "000000";
+        this.tests = new int[6];
     }
 
     public Patient(String name, String surname, LocalDate dateOfBirth, String personID) {
@@ -26,10 +29,24 @@ public class Patient implements IData<Patient> {
         this.surname = surname;
         this.dateOfBirth = dateOfBirth;
         this.personID = personID;
+        this.tests = new int[6];
+//        System.out.println(Arrays.toString(this.tests));
+        //todo pridat aj sem testy?
     }
 
     public String getPersonID() {
         return this.personID;
+    }
+
+    public boolean addTest(int code) {
+        for (int i = 0; i < this.tests.length; i++) {
+            if (this.tests[i] == 0) {
+                this.tests[i] = code;
+                return true;
+            }
+        }
+        System.out.println("The person has already maximum number of tests.");
+        return false;
     }
 
     @Override
@@ -53,7 +70,8 @@ public class Patient implements IData<Patient> {
         return Integer.BYTES + 2 + NAME_LIMIT +
                 Integer.BYTES + 2 + SURNAME_LIMIT +
                 Integer.BYTES * 3 +
-                Integer.BYTES + 2 + ID_LIMIT;
+                Integer.BYTES + 2 + ID_LIMIT +
+                Integer.BYTES * 6;
     }
 
     private String getFullString(String str, int maxLimit) {
@@ -81,6 +99,9 @@ public class Patient implements IData<Patient> {
             hlpOutStream.writeInt(this.dateOfBirth.getYear());
             hlpOutStream.writeInt(Math.min(this.personID.length(), ID_LIMIT));
             hlpOutStream.writeUTF(this.getFullString(this.personID, ID_LIMIT));
+            for (int test : this.tests) {
+                hlpOutStream.writeInt(test);
+            }
 
             return hlpByteArrayOutputStream.toByteArray();
 
@@ -114,6 +135,10 @@ public class Patient implements IData<Patient> {
             idLen = Math.min(idLen, idStr.length());
             this.personID = idStr.substring(0, idLen);
 
+            for (int i = 0; i < this.tests.length; ++i) {
+                this.tests[i] = hlpInStream.readInt();
+            }
+
         } catch (IOException e) {
             throw new IllegalStateException("Error during conversion from byte array.");
         }
@@ -121,6 +146,10 @@ public class Patient implements IData<Patient> {
 
     @Override
     public String getOutput() {
-        return "Patient name: " + this.name + " " + this.surname + "  |  Date of birth: " + this.dateOfBirth + "  |  ID: " + this.personID;
+        StringBuilder sb = new StringBuilder();
+        for (int test : this.tests) {
+            sb.append(test).append("  ");
+        }
+        return "Patient name: " + this.name + " " + this.surname + "  |  Date of birth: " + this.dateOfBirth + "  |  ID: " + this.personID + "\nTests: " + sb;
     }
 }

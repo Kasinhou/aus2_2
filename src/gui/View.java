@@ -23,7 +23,8 @@ public class View extends JFrame {
 
     private JButton generateButton;
     private JButton clearButton;
-    private JButton outputButton;
+    private JButton outputPatientsButton;
+    private JButton outputTestsButton;
     private JButton openButton;
     private JButton loadButton;
     private JButton closeButton;
@@ -55,23 +56,31 @@ public class View extends JFrame {
         basicButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         this.generateButton = new JButton("Generate");
         this.clearButton = new JButton("Clear");
-        this.outputButton = new JButton("Output All");
+        basicButtons.add(new JLabel("BASIC"));
         basicButtons.add(this.generateButton);
         basicButtons.add(this.clearButton);
-        basicButtons.add(this.outputButton);
 
         JPanel fileButtons = new JPanel();
         fileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         this.openButton = new JButton("Open");
         this.loadButton = new JButton("Load");
         this.closeButton = new JButton("Close");
+        fileButtons.add(new JLabel("FILE"));
         fileButtons.add(this.openButton);
         fileButtons.add(this.loadButton);
         fileButtons.add(this.closeButton);
 
+        JPanel outputButtons = new JPanel();
+        outputButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        this.outputPatientsButton = new JButton("Patients");
+        this.outputTestsButton = new JButton("Tests");
+        outputButtons.add(new JLabel("OUTPUT"));
+        outputButtons.add(this.outputPatientsButton);
+        outputButtons.add(this.outputTestsButton);
+
         JPanel testButtons = new JPanel();
         testButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        this.testLinHashButton = new JButton("Linear Hashing");
+        this.testLinHashButton = new JButton("Lin Hash File");
         this.testHeapFileButton = new JButton("Heap File");
         testButtons.add(new JLabel("TESTING"));
         testButtons.add(this.testLinHashButton);
@@ -147,6 +156,7 @@ public class View extends JFrame {
 
         leftPanel.add(basicButtons);
         leftPanel.add(fileButtons);
+        leftPanel.add(outputButtons);
         leftPanel.add(testButtons);
         leftPanel.add(personInputs);
         leftPanel.add(actionPersonButtons);
@@ -228,8 +238,12 @@ public class View extends JFrame {
         return this.clearButton;
     }
 
-    public JButton getOutputButton() {
-        return this.outputButton;
+    public JButton getOutputPatientsButton() {
+        return this.outputPatientsButton;
+    }
+
+    public JButton getOutputTestsButton() {
+        return this.outputTestsButton;
     }
 
     public JButton getOpenButton() {

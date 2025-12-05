@@ -1,7 +1,7 @@
 package main;
 
 import com.github.javafaker.Faker;
-import structure.HeapFile;
+import structure.LinearHashing;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -15,27 +15,27 @@ public class Generator {
     private static final int PEOPLE_COUNT = 100;
     private static final int TESTS_COUNT = 1000;
 
-    private HeapFile<Patient> hfPatients;
-    private HeapFile<PCRTest> hfTests;
+    private LinearHashing<Patient> lhPatients;
+    private LinearHashing<PCRTest> lhTests;
     private Faker faker;
     private Set<String> peopleIDs;
     private ArrayList<String> idsList;
     private Set<Integer> testCodes;
 
-    public Generator(HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests) {//TODO pridat linear hash?
+    public Generator(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
         this.faker = new Faker();
         this.peopleIDs = new HashSet<>();
         this.idsList = new ArrayList<>();
         this.testCodes = new HashSet<>();
-        this.hfPatients = hfPatients;
-        this.hfTests = hfTests;
+        this.lhPatients = lhPatients;
+        this.lhTests = lhTests;
     }
 
     public void generatePeople() {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
-            this.hfPatients.insert(patient);
+            this.lhPatients.insert(patient);
             ++i;
         }
         System.out.println(PEOPLE_COUNT + " Patients generated.");
@@ -66,7 +66,7 @@ public class Generator {
         int i = 0;
         while (i < TESTS_COUNT) {
             PCRTest test = this.generateTest();
-            this.hfTests.insert(test);
+            this.lhTests.insert(test);
             ++i;
         }
         System.out.println(TESTS_COUNT + " Tests generated.");

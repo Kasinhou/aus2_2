@@ -43,6 +43,10 @@ public class PCRTest implements IData<PCRTest> {
         return this.testCode;
     }
 
+    public String getPersonID() {
+        return this.testPersonID;
+    }
+
     @Override
     public PCRTest createClass() {
         return new PCRTest();

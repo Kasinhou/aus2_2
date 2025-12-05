@@ -3,9 +3,11 @@ import main.Generator;
 import main.PCRTest;
 import main.Patient;
 import structure.HeapFile;
+import structure.LinearHashing;
 import test.Tester;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Controller which actions from user.
@@ -13,17 +15,17 @@ import java.time.LocalDate;
 public class Controller {
     private Model model;
     private View view;
-    private HeapFile<Patient> hfPatients;
-    private HeapFile<PCRTest> hfTests;
+    private LinearHashing<Patient> lhPatients;
+    private LinearHashing<PCRTest> lhTests;
     private Generator generator;
     private Tester tester;
 
-    public Controller(Model model, View view, HeapFile<Patient> hfPatients, HeapFile<PCRTest> hfTests, Tester tester) {
+    public Controller(Model model, View view, LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests, Tester tester) {
         this.model = model;
         this.view = view;
-        this.hfPatients = hfPatients;
-        this.hfTests = hfTests;
-        this.generator = new Generator(this.hfPatients, this.hfTests);
+        this.lhPatients = lhPatients;
+        this.lhTests = lhTests;
+        this.generator = new Generator(this.lhPatients, this.lhTests);
         this.tester = tester;
         this.createMainWindow();
     }
@@ -31,7 +33,8 @@ public class Controller {
     private void createMainWindow() {
         this.view.getGenerateButton().addActionListener(e -> this.handleGenerateButton());
         this.view.getClearButton().addActionListener(e -> this.handleClearButton());
-        this.view.getOutputButton().addActionListener(e -> this.handleOutputButton());
+        this.view.getOutputPatientsButton().addActionListener(e -> this.handleOutputPatientsButton());
+        this.view.getOutputTestsButton().addActionListener(e -> this.handleOutputTestsButton());
         this.view.getOpenButton().addActionListener(e -> this.handleOpenButton());
         this.view.getLoadButton().addActionListener(e -> this.handleLoadButton());
         this.view.getCloseButton().addActionListener(e -> this.handleCloseButton());
@@ -57,9 +60,13 @@ public class Controller {
         this.view.clearInputFields();
     }
 
-    private void handleOutputButton() {
-//        String message = this.model.getAllTestsOutput();
-        String message = this.model.getAllOutput();
+    private void handleOutputPatientsButton() {
+        String message = this.model.getAllOutputPatients();
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleOutputTestsButton() {
+        String message = this.model.getAllOutputTests();
         this.view.getOutputArea().setText(message);
     }
 
@@ -77,7 +84,6 @@ public class Controller {
         String message = this.model.closeFile();
         this.view.getOutputArea().setText(message);
     }
-
 
     private void handleTestLHButton() {
         String message = this.tester.testLinearHashing();
@@ -107,39 +113,94 @@ public class Controller {
     }
 
     private void handleEditPersonButton() {
-        String message = this.model.editPatient("", "", null, "");
+        LocalDate date = null;
+        String inputDate = this.view.getPersonBirthday().trim();
+        if (!inputDate.isEmpty()) {
+            try {
+                date = LocalDate.parse(inputDate);
+            } catch (Exception e) {
+                this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DD");
+                return;
+            }
+        }
+        String message = this.model.editPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleDeletePersonButton() {
-        int address;
-        try {
-            address = Integer.parseInt(this.view.getPersonAddress());
-        } catch (NumberFormatException e) {
-            this.view.getOutputArea().setText("Use integer for address.");
-            return;
-        }
-        String message = this.model.deletePatient(address, this.view.getPersonID());
+//        int address;
+//        try {
+//            address = Integer.parseInt(this.view.getPersonAddress());
+//        } catch (NumberFormatException e) {
+//            this.view.getOutputArea().setText("Use integer for address.");
+//            return;
+//        }
+        String message = this.model.deletePatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleInsertTestButton() {
-        String message = "Insert test is not implemented yet";
+        LocalDateTime date;
+        int code;
+        boolean result;
+        double value;
+        try {
+            code = Integer.parseInt(this.view.getTestCode());
+        } catch (NumberFormatException e) {
+            this.view.getOutputArea().setText("Use integer for test code.");
+            return;
+        }
+        try {
+            date = LocalDateTime.parse(this.view.getTestDate().trim());
+        } catch (Exception e) {
+            this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
+            return;
+        }
+        //todo vyriesit parse double boolean
+        value = Double.parseDouble(this.view.getTestValue());
+        result = Boolean.parseBoolean(this.view.getTestResult());
+        String message = this.model.insertTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleGetTestButton() {
-        String message = "Get test is not implemented yet";
+        int code;
+        try {
+            code = Integer.parseInt(this.view.getTestCode());
+        } catch (NumberFormatException e) {
+            this.view.getOutputArea().setText("Use integer for test code.");
+            return;
+        }
+        String message = this.model.getTest(code);
         this.view.getOutputArea().setText(message);
     }
 
     private void handleEditTestButton() {
-        String message = "Edit test is not implemented yet";
+        LocalDateTime date;
+        int code;
+        boolean result;
+        double value;
+        try {
+            code = Integer.parseInt(this.view.getTestCode());
+        } catch (NumberFormatException e) {
+            this.view.getOutputArea().setText("Use integer for test code.");
+            return;
+        }
+        try {
+            date = LocalDateTime.parse(this.view.getTestDate().trim());
+        } catch (Exception e) {
+            this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
+            return;
+        }
+        //todo vyriesit parse double boolean
+        value = Double.parseDouble(this.view.getTestValue());
+        result = Boolean.parseBoolean(this.view.getTestResult());
+        String message = this.model.editTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleDeleteTestButton() {
-        String message = "Delete test is not implemented yet";
+        String message = this.model.deleteTest(Integer.parseInt(this.view.getTestCode()));
         this.view.getOutputArea().setText(message);
     }
 }

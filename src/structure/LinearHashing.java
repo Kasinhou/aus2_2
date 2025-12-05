@@ -113,6 +113,7 @@ public class LinearHashing<T extends IData<T>> {
         return (density > 0.8 && densityMain > 0.85) || (densityOverflow > 0.5 && densityMain > 0.8) || (insertedOverflowCount > (0.3 * mainBC * mainBF));
     }
 
+    //todo spravit to ze ak je niekde volny blok tak pridam tam to co chcem zretazovat pri splite
     private void splitBlock() {
         if (!this.shouldSplit()) {
             return;
@@ -141,7 +142,10 @@ public class LinearHashing<T extends IData<T>> {
                 int newBlockAddress = Math.floorMod(data.getHashCode(), this.blockGroupSize * (1 << (this.level + 1)));
                 if (newBlockAddress != this.splitPointer) {
                     dataToNewAddress.add(data);//tie ktore sa budu posuvat
-                    currentBlock.removeData(data);// pridanie do volnych blokov ak je volny
+                    currentBlock.removeData(data);// pridanie do volnych blokov ak je volny, aby sa nasledne mohli vlozit nejake ine zaznamy a zretazili sa
+                    if (currentBlock.getValidCount() == 0) {
+                        this.overflowFile.setBlockAsFree(overflowIndex);
+                    }//aj ciastocne vyriesit
                     --insertedOverflowCount;
                 }
             }
