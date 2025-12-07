@@ -18,7 +18,7 @@ public class Tester {
     public String testHeapFile() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING HEAP FILE ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        HeapFile<Patient> heapFile = new HeapFile<>("testHeapFile.bin", 300, Patient.class, true);
+        HeapFile<Patient> heapFile = new HeapFile<>("testHeapFile.bin", 300, "testMainInfo.bin", Patient.class, true);
         heapFile.open();
         Generator generator = new Generator(null, null);
         ArrayList<Patient> patients = new ArrayList<>();
@@ -27,7 +27,7 @@ public class Tester {
         Random random = new Random();
         for (int s = 0; s < 10; ++s) {
             random.setSeed(s);
-//                System.out.println(s);
+                System.out.println(s);
             for (int i = 0; i < 1500; ++i) {
                 double r = random.nextDouble();
                 if (r < 0.2) {//GET
@@ -100,7 +100,7 @@ public class Tester {
     public String testLinearHashing() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING LINEAR HASHING ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        LinearHashing<Patient> linHash = new LinearHashing<>("mainFile.bin", 1000, "overflowFile.bin", 500, Patient.class);
+        LinearHashing<Patient> linHash = new LinearHashing<>("testMainFile.bin", 1000, "testMainInfo.bin", "testOverflowFile.bin", 500, "testOverflowInfo.bin", Patient.class);
         linHash.open();
         ArrayList<Patient> patients = new ArrayList<>();
         Generator generator = new Generator(null, null);
@@ -120,7 +120,8 @@ public class Tester {
                     Patient findPatient = linHash.get(new Patient("", "", null, patients.get(getIndex).getPersonID()));
                     if (findPatient == null || !findPatient.getPersonID().equals(patients.get(getIndex).getPersonID())
                             || !findPatient.getOutput().equals(patients.get(getIndex).getOutput())) {
-                        sb.append("Index = ").append(i).append("\nGet method in linear hashing did not found the right Patient compared with ids.");
+                        sb.append("\nIndex = ").append(i).append(", Get method in linear hashing did not found the right Patient compared with ids.");
+                        sb.append("\nPatient with this id was not found: ").append(patients.get(getIndex).getPersonID()).append(" find: ").append(findPatient);
                     }
                     ++getCount;
 
@@ -130,7 +131,8 @@ public class Tester {
                     linHash.insert(patient);//treba vytahovat adresu odtialto?, moze sa to menit pri splite
                     Patient inserted = linHash.get(new Patient("", "", null, patient.getPersonID()));
                     if (inserted == null || !patient.getOutput().equals(inserted.getOutput())) {
-                        sb.append("Index = ").append(i).append("\nInserted patient in linear hashing is not actually inserted, or is inserted incorrect, get did not found inserted data.");
+                        sb.append("\nIndex = ").append(i).append(", Inserted patient in linear hashing is not actually inserted, or is inserted incorrect, get did not found inserted data.");
+                        sb.append("\nPatient with this id was not found: ").append(patient.getPersonID()).append(" inserted: ").append(inserted);
                     }
                     patients.add(patient);
                     ++insertCount;
@@ -138,7 +140,7 @@ public class Tester {
                 if (i % 900 == 0) {
                     ArrayList<Patient> validData = linHash.getAllValidData();
                     if (validData.size() != patients.size()) {
-                        sb.append("Index = ").append(i).append("\nSize of valid data in linear hashing is not equal the size of patients in tester!");
+                        sb.append("\nIndex = ").append(i).append(", Size of valid data in linear hashing is not equal the size of patients in tester!");
                     }
 
                     List<String> insertedPatients = patients.stream().map(Patient::getOutput).toList();

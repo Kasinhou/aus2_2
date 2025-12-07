@@ -128,7 +128,11 @@ public class Patient implements IData<Patient> {
             int day = hlpInStream.readInt();
             int month = hlpInStream.readInt();
             int year = hlpInStream.readInt();
-            this.dateOfBirth = LocalDate.of(year, month, day);
+            if (year == 0 || month == 0 || day == 0) {
+                this.dateOfBirth = LocalDate.now();
+            } else {
+                this.dateOfBirth = LocalDate.of(year, month, day);
+            }
 
             int idLen = hlpInStream.readInt();
             String idStr = hlpInStream.readUTF();

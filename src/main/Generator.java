@@ -12,20 +12,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Generator {
-    private static final int PEOPLE_COUNT = 100;
-    private static final int TESTS_COUNT = 1000;
+    private static final int PEOPLE_COUNT = 500;
+    private static final int TESTS_COUNT = 5000;
 
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
     private Faker faker;
     private Set<String> peopleIDs;
     private ArrayList<String> idsList;
+    private ArrayList<Integer> testCount;
     private Set<Integer> testCodes;
 
     public Generator(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
         this.faker = new Faker();
         this.peopleIDs = new HashSet<>();
         this.idsList = new ArrayList<>();
+        this.testCount = new ArrayList<>();
         this.testCodes = new HashSet<>();
         this.lhPatients = lhPatients;
         this.lhTests = lhTests;
@@ -35,6 +37,7 @@ public class Generator {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
+            System.out.println(patient.getPersonID());
             this.lhPatients.insert(patient);
             ++i;
         }
@@ -66,6 +69,8 @@ public class Generator {
         int i = 0;
         while (i < TESTS_COUNT) {
             PCRTest test = this.generateTest();
+//            Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
+            //todo how to add test to patient
             this.lhTests.insert(test);
             ++i;
         }
@@ -86,7 +91,12 @@ public class Generator {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
                 .withNano(0);
-        personID = this.idsList.get(this.faker.number().numberBetween(0, this.peopleIDs.size()));// TODO osetreit 6 max testov
+        int index;
+//        do {
+            index = this.faker.number().numberBetween(0, this.peopleIDs.size());
+            personID = this.idsList.get(index);// TODO osetreit 6 max testov
+//        } while (this.testCount.get(index) < 6);
+//        this.testCount.set(index, this.testCount.get(index) + 1);
         testResult = this.faker.bool().bool();
         testValue = testResult ? this.faker.number().randomDouble(2, 15, 30) : this.faker.number().randomDouble(2, 25, 45);
         note = this.faker.medical().symptoms();
@@ -102,6 +112,7 @@ public class Generator {
             return false;
         }
         this.idsList.add(id);
+        this.testCount.add(0);
         return true;
     }
 }

@@ -146,8 +146,9 @@ public class Controller {
         double value;
         try {
             code = Integer.parseInt(this.view.getTestCode());
+            value = Double.parseDouble(this.view.getTestValue());
         } catch (NumberFormatException e) {
-            this.view.getOutputArea().setText("Use integer for test code.");
+            this.view.getOutputArea().setText("Use integer for test code and double for test value.");
             return;
         }
         try {
@@ -156,8 +157,6 @@ public class Controller {
             this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
             return;
         }
-        //todo vyriesit parse double boolean
-        value = Double.parseDouble(this.view.getTestValue());
         result = Boolean.parseBoolean(this.view.getTestResult());
         String message = this.model.insertTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);
@@ -175,6 +174,7 @@ public class Controller {
         this.view.getOutputArea().setText(message);
     }
 
+    //todo porozmyslat nad logikou editu
     private void handleEditTestButton() {
         LocalDateTime date;
         int code;
@@ -182,6 +182,7 @@ public class Controller {
         double value;
         try {
             code = Integer.parseInt(this.view.getTestCode());
+            value = Double.parseDouble(this.view.getTestValue());
         } catch (NumberFormatException e) {
             this.view.getOutputArea().setText("Use integer for test code.");
             return;
@@ -192,8 +193,6 @@ public class Controller {
             this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
             return;
         }
-        //todo vyriesit parse double boolean
-        value = Double.parseDouble(this.view.getTestValue());
         result = Boolean.parseBoolean(this.view.getTestResult());
         String message = this.model.editTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);

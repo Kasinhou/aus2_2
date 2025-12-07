@@ -55,6 +55,10 @@ public class Block<T extends IData<T>> implements IRecord {
         return this.validCount;
     }
 
+    public void setBlockToEmpty() {
+        this.validCount = 0;
+    }
+
     public void addData(T data) {
         this.dataArray.set(this.validCount, data);
         ++this.validCount;
@@ -128,6 +132,8 @@ public class Block<T extends IData<T>> implements IRecord {
         StringBuilder sb = new StringBuilder();
         sb.append("Valid count: ").append(this.validCount);
         sb.append("    |    Block factor: ").append(this.blockFactor);
+        sb.append("    |    Block size: ").append(this.getSize());
+        sb.append("    |    Size of record: ").append(this.sizeT);
         sb.append("    |    Index to next overflow: ").append(this.indexToOverflow);
         sb.append("\n---valid data---");
         for (int i = 0; i < this.blockFactor; ++i) {

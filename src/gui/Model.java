@@ -69,12 +69,11 @@ public class Model {
         return "Insertion test not implemented yet.";
     }
 
-    //TODO aj pacienta
     public String getTest(int testCode) {
         PCRTest test = this.lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
         Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
         System.out.println(patient.getOutput());
-        return test.getOutput() + "\nPatient\n" + patient.getOutput();
+        return test.getOutput() + "\n" + patient.getOutput();
     }
 
     //TODO
@@ -84,7 +83,7 @@ public class Model {
     }
 
     public String deleteTest(int testCode) {
-        return "Delete test not implemented yet.";
+        return "NOT IMPLEMENTED.";
     }
 
     public String getAllOutputPatients() {
@@ -102,7 +101,9 @@ public class Model {
     }
 
     public String loadFile() {
-        return "Loading file not implemented. Add load method.";
+        this.lhPatients.load();
+        this.lhTests.load();
+        return "Loading info file and continue with lin hash files.";
     }
 
     public String closeFile() {
