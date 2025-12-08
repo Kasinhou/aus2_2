@@ -4,8 +4,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Block represents one block which stored data according to block factor.
+ */
 public class Block<T extends IData<T>> implements IRecord {
-    private ArrayList<T> dataArray; // vzdy tolko kolko je blockingFactor
+    private ArrayList<T> dataArray;
     private int validCount;
     private int sizeT;
     private int blockFactor;
@@ -21,7 +24,7 @@ public class Block<T extends IData<T>> implements IRecord {
         this.classType = classType;
         this.indexToOverflow = -1;
         try {
-            T dummyData = this.classType.newInstance();// namnozit konkretne instancie triedy T pomocou createClass
+            T dummyData = this.classType.newInstance();// namnozit konkretne instancie triedy
             this.sizeT = dummyData.getSize();
             for (int i = 0; i < this.blockFactor; ++i) {
                 this.dataArray.add(this.classType.newInstance().createClass());
@@ -29,14 +32,6 @@ public class Block<T extends IData<T>> implements IRecord {
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public ArrayList<T> getValidDataArray() {
-        ArrayList<T> valid = new ArrayList<>();
-        for (int i = 0; i < this.validCount; ++i) {
-            valid.add(this.dataArray.get(i));
-        }
-        return valid;
     }
 
     public boolean isFull() {
@@ -59,11 +54,18 @@ public class Block<T extends IData<T>> implements IRecord {
         this.validCount = 0;
     }
 
+    /**
+     * Adding data to block
+     */
     public void addData(T data) {
         this.dataArray.set(this.validCount, data);
         ++this.validCount;
     }
 
+    /**
+     * Traversing data array and comparing data using equals.
+     * @return find data if not null
+     */
     public T findData(T data) {
         for (int i = 0; i < this.validCount; ++i) {
             if (this.dataArray.get(i).equalsTo(data)) {
@@ -73,6 +75,9 @@ public class Block<T extends IData<T>> implements IRecord {
         return null;
     }
 
+    /**
+     * Editing data already in block.
+     */
     public boolean editData(T data) {
         for (int i = 0; i < this.validCount; ++i) {
             if (this.dataArray.get(i).equalsTo(data)) {
@@ -83,6 +88,9 @@ public class Block<T extends IData<T>> implements IRecord {
         return false;
     }
 
+    /**
+     * Removing data from block by swaping with last valid and decremented valid count.
+     */
     public boolean removeData(T data) {
         for (int i = 0; i < this.validCount; ++i) {
             if (this.dataArray.get(i).equalsTo(data)) {
@@ -94,9 +102,22 @@ public class Block<T extends IData<T>> implements IRecord {
         return false;
     }
 
+    /**
+     * Retrieve only valid data in block.
+     */
+    public ArrayList<T> getValidDataArray() {
+        ArrayList<T> valid = new ArrayList<>();
+        for (int i = 0; i < this.validCount; ++i) {
+            valid.add(this.dataArray.get(i));
+        }
+        return valid;
+    }
+
+    /**
+     * How many bytes has block (valid count, index to overflow, all records)
+     */
     @Override
     public int getSize() {
-//        size += zadefinovat si kolko bude mat info o bloku
         return Integer.BYTES * 2 + this.blockFactor * this.sizeT;
     }
 

@@ -3,10 +3,12 @@ package main;
 import structure.IData;
 
 import java.io.*;
-import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+/**
+ * Class Test with attributes and methods to work with binary file.
+ */
 public class PCRTest implements IData<PCRTest> {
     private static final int ID_LIMIT = 10;
     private static final int NOTE_LIMIT = 11;
@@ -35,6 +37,9 @@ public class PCRTest implements IData<PCRTest> {
         this.note = note;
     }
 
+    /**
+     * Compare two tests based on their code.
+     */
     @Override
     public boolean equalsTo(PCRTest comparedData) {
         return this.testCode == comparedData.getTestCode();
@@ -46,6 +51,27 @@ public class PCRTest implements IData<PCRTest> {
 
     public String getPersonID() {
         return this.testPersonID;
+    }
+
+    @Override
+    public PCRTest createClass() {
+        return new PCRTest();
+    }
+
+    @Override
+    public int getHashCode() {
+        return Integer.hashCode(this.testCode);
+    }
+
+    /**
+     * Size of stored Test in bytes.
+     */
+    @Override
+    public int getSize() {
+        return Long.BYTES +
+                Integer.BYTES + 2 + ID_LIMIT +
+                Integer.BYTES + 1 + Double.BYTES +
+                Integer.BYTES + 2 + NOTE_LIMIT;
     }
 
     public LocalDateTime getDateTime() {
@@ -64,24 +90,6 @@ public class PCRTest implements IData<PCRTest> {
         return this.note;
     }
 
-    @Override
-    public PCRTest createClass() {
-        return new PCRTest();
-    }
-
-    @Override
-    public int getHashCode() {
-        return Integer.hashCode(this.testCode);
-    }
-
-    @Override
-    public int getSize() {
-        return Long.BYTES +
-                Integer.BYTES + 2 + ID_LIMIT +
-                Integer.BYTES + 1 + Double.BYTES +
-                Integer.BYTES + 2 + NOTE_LIMIT;
-    }
-
     private String getFullString(String str, int maxLimit) {
         if (str.length() >= maxLimit) {
             return str.substring(0, maxLimit);
@@ -89,6 +97,9 @@ public class PCRTest implements IData<PCRTest> {
         return str + "o".repeat(maxLimit - str.length());
     }
 
+    /**
+     * Create byte array from Test (all necessary info)
+     */
     @Override
     public byte[] getBytes() {
         ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
@@ -105,12 +116,14 @@ public class PCRTest implements IData<PCRTest> {
             hlpOutStream.writeUTF(this.getFullString(this.note, NOTE_LIMIT));
 
             return hlpByteArrayOutputStream.toByteArray();
-
         } catch (IOException e){
             throw new IllegalStateException("Error during conversion to byte array.");
         }
     }
 
+    /**
+     * Define/create Test from byte array.
+     */
     @Override
     public void fromBytes(byte[] from) {
         ByteArrayInputStream hlpByteArrayInputStream = new ByteArrayInputStream(from);

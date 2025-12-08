@@ -1,30 +1,21 @@
 package gui;
-import main.Generator;
-import main.PCRTest;
-import main.Patient;
-import structure.LinearHashing;
+
 import test.Tester;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Controller which actions from user.
+ * Controller which actions from user is going to happen.
  */
 public class Controller {
     private Model model;
     private View view;
-    private LinearHashing<Patient> lhPatients;
-    private LinearHashing<PCRTest> lhTests;
-    private Generator generator;
     private Tester tester;
 
-    public Controller(Model model, View view, LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests, Tester tester) {
+    public Controller(Model model, View view, Tester tester) {
         this.model = model;
         this.view = view;
-        this.lhPatients = lhPatients;
-        this.lhTests = lhTests;
-        this.generator = new Generator(this.lhPatients, this.lhTests);
         this.tester = tester;
         this.createMainWindow();
     }
@@ -50,8 +41,8 @@ public class Controller {
     }
 
     private void handleGenerateButton() {
-        this.generator.generatePeople();
-        this.generator.generateTests();
+        String message = this.model.generate();
+        this.view.getOutputArea().setText(message);
     }
 
     private void handleClearButton() {

@@ -1,5 +1,6 @@
 package gui;
 
+import main.Generator;
 import main.PCRTest;
 import main.Patient;
 import structure.LinearHashing;
@@ -7,15 +8,25 @@ import structure.LinearHashing;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Class which handles functions on gui (returns messages to controller after doing queries)
+ */
 public class Model {
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
+    private Generator generator;
 
-    public Model(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
-        this.lhPatients = lhPatients;
-        this.lhTests = lhTests;
+    public Model() {
+        this.lhPatients = new LinearHashing<>("mainPatients.bin", 400,
+                "mainPatientsInfo.bin", "overflowPatients.bin", 200,
+                "overflowPatientsInfo.bin", Patient.class);
+        this.lhTests = new LinearHashing<>("mainTests.bin", 800,
+                "mainTestsInfo.bin", "overflowTests.bin", 400,
+                "overflowTestsInfo.bin", PCRTest.class);
+        this.generator = new Generator(this.lhPatients, this.lhTests);
     }
 
+    // Insert patient with user inputs to LH if everything is fine
     public String insertPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
         if (personID.isEmpty() || name.isEmpty() || surname.isEmpty()) {
             return "Please fill all info about patient.";
@@ -27,6 +38,7 @@ public class Model {
         return "Patient with id " + personID + " inserted to block " + address;
     }
 
+    // Find patient based on id from user, together with all his tests
     public String getPatient(String personID) {
         if (personID.length() > 10 || personID.isEmpty()) {
             return "ID should have min 1 and max 10 characters.";
@@ -48,6 +60,7 @@ public class Model {
         return patient.getOutput() + "\nTests of patient [" + tests.length + "]" + testsOutput;
     }
 
+    // Edit non key attributes of patients which user defined based on patient id
     public String editPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
         if (personID.length() > 10 || personID.isEmpty()) {
             return "ID should have min 1 and max 10 characters.";
@@ -78,6 +91,7 @@ public class Model {
         return "Edit patient with id " + personID;
     }
 
+    // Insert test with user inputs to LH if everything is fine
     public String insertTest(LocalDateTime dateTime, String personID, int testCode, boolean testResult, double testValue, String note) {
         if (personID.isEmpty()) {
             return "Please fill patient ID.";
@@ -97,12 +111,14 @@ public class Model {
         return "Inserted test with code " + testCode + " for patient " + personID + " on address " + address;
     }
 
+    // Find test based on test code from user, with its patient info
     public String getTest(int testCode) {
         PCRTest test = this.lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
         Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
         return test.getOutput() + "\n" + patient.getOutput();
     }
 
+    // Edit non key attributes of test which user defined based on test code
     public String editTest(LocalDateTime dateTime, int testCode, String testResult, String testValue, String note) {
         PCRTest test = lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
         if (test == null) {
@@ -144,26 +160,38 @@ public class Model {
         return "NOT IMPLEMENTED.";
     }
 
+    // Output of LH patients, used for debug and for user
     public String getAllOutputPatients() {
         return lhPatients.getOutput();
     }
 
+    // Output of LH tests, used for debug and for user
     public String getAllOutputTests() {
         return lhTests.getOutput();
     }
 
+    // Generates fake data and fills LH files
+    public String generate() {
+        this.generator.generatePeople();
+        this.generator.generateTests();
+        return "Generated patients and tests.";
+    }
+
+    // Opening new binary file
     public String openNewFile() {
         this.lhPatients.open();
         this.lhTests.open();
         return "Opening patients and tests files.";
     }
 
+    // Loading from binary file
     public String loadFile() {
         this.lhPatients.load();
         this.lhTests.load();
         return "Loading info file and continue with lin hash files.";
     }
 
+    // Closing binary file
     public String closeFile() {
         this.lhPatients.close();
         this.lhTests.close();

@@ -35,6 +35,17 @@ public class LinearHashing<T extends IData<T>> {
         }
     }
 
+    // split, hesovacka, level, ostatne?
+    public void load() {
+        this.mainFile.load();
+        this.overflowFile.load();
+    }
+
+    public void close() {
+        this.mainFile.close();
+        this.overflowFile.close();
+    }
+
     public int insert(T data) {
 //        System.out.println("Inserted all = " + (insertedOverflowCount + insertedMainCount));
         int hashCode = data.getHashCode();
@@ -350,16 +361,6 @@ public class LinearHashing<T extends IData<T>> {
             indexToOverflow = overflowBlock.getIndexToOverflow();
         }
         return false;
-    }
-
-    public void load() {
-        this.mainFile.load();
-        this.overflowFile.load();
-    }
-
-    public void close() {
-        this.mainFile.close();
-        this.overflowFile.close();
     }
 
     public String getOutput() {

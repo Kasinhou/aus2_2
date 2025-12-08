@@ -8,9 +8,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
+/**
+ * Generator to filled db system with fake data.
+ */
 public class Generator {
     private static final int PEOPLE_COUNT = 500;
     private static final int TESTS_COUNT = 2000;
@@ -19,13 +20,11 @@ public class Generator {
     private LinearHashing<PCRTest> lhTests;
     private Faker faker;
     private ArrayList<String> idsList;
-//    private ArrayList<Integer> testCount;
     private ArrayList<Integer> testCodes;
 
     public Generator(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
         this.faker = new Faker();
         this.idsList = new ArrayList<>();
-//        this.testCount = new ArrayList<>();
         this.testCodes = new ArrayList<>();
         this.lhPatients = lhPatients;
         this.lhTests = lhTests;
@@ -35,13 +34,15 @@ public class Generator {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
-//            System.out.println(patient.getPersonID());
             this.lhPatients.insert(patient);
             ++i;
         }
         System.out.println(PEOPLE_COUNT + " Patients generated.");
     }
 
+    /**
+     * Generate patient with random attributes using faker and according rules.
+     */
     public Patient generatePatient() {
         String name, surname, personID;
         LocalDate date;
@@ -55,7 +56,6 @@ public class Generator {
                 .toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
-//            date = this.faker.date().birthday(5, 100).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         do {
             personID = this.faker.lorem().characters(1, 10, true, true);
         } while (!this.addedPersonID(personID));
@@ -69,18 +69,20 @@ public class Generator {
             PCRTest test = this.generateTest();
             Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
             if (!patient.addTest(test.getTestCode())) {
-//                System.out.println("Already maximum amount of tests.");
+                // patient already has max number of tests, generate new
                 this.testCodes.remove((Integer)test.getTestCode());
                 continue;
             }
             this.lhPatients.edit(patient);
             this.lhTests.insert(test);
-//            System.out.println(test.getTestCode());
             ++i;
         }
         System.out.println(TESTS_COUNT + " Tests generated.");
     }
 
+    /**
+     * Generate test with random attributes using faker and according rules.
+     */
     public PCRTest generateTest() {
         String personID, note;
         LocalDateTime dateTime;
@@ -107,6 +109,9 @@ public class Generator {
         return new PCRTest(dateTime, personID, testCode, testResult, testValue, note);
     }
 
+    /**
+     * Method to find out if the test code is already used.
+     */
     private boolean addedTestCode(int code) {
         if (this.testCodes.contains(code)) {
             return false;
@@ -115,12 +120,14 @@ public class Generator {
         return true;
     }
 
+    /**
+     * Method to find out if the patient id is already used.
+     */
     private boolean addedPersonID(String id) {
         if (this.idsList.contains(id)) {
             return false;
         }
         this.idsList.add(id);
-//        this.testCount.add(0);
         return true;
     }
 }

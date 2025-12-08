@@ -4,8 +4,10 @@ import structure.IData;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.util.Arrays;
 
+/**
+ * Class Patient with attributes and methods to work with binary file.
+ */
 public class Patient implements IData<Patient> {
     private static final int NAME_LIMIT = 15;
     private static final int SURNAME_LIMIT = 14;
@@ -48,6 +50,9 @@ public class Patient implements IData<Patient> {
         return this.dateOfBirth;
     }
 
+    /**
+     * Added test to patient if not already max.
+     */
     public boolean addTest(int code) {
         for (int i = 0; i < this.tests.length; i++) {
             if (this.tests[i] == 0) {
@@ -55,10 +60,12 @@ public class Patient implements IData<Patient> {
                 return true;
             }
         }
-//        System.out.println("The person has already maximum number of tests.");
         return false;
     }
 
+    /**
+     * Retrieve all tests of patient.
+     */
     public int[] getValidTests() {
         int count = 0;
         for (int test : this.tests) {
@@ -77,6 +84,9 @@ public class Patient implements IData<Patient> {
         return validTests;
     }
 
+    /**
+     * Compare two patients based on id.
+     */
     @Override
     public boolean equalsTo(Patient comparedData) {
         return this.personID.compareTo(comparedData.getPersonID()) == 0;
@@ -85,7 +95,6 @@ public class Patient implements IData<Patient> {
     @Override
     public Patient createClass() {
         return new Patient();
-//        return new Patient(this.name, this.surname, this.dateOfBirth, this.personID);
     }
 
     @Override
@@ -93,6 +102,9 @@ public class Patient implements IData<Patient> {
         return this.personID.hashCode();
     }
 
+    /**
+     * Size of stored Patient in bytes.
+     */
     @Override
     public int getSize() {
         return Integer.BYTES + 2 + NAME_LIMIT +
@@ -106,12 +118,13 @@ public class Patient implements IData<Patient> {
         if (str.length() >= maxLimit) {
             return str.substring(0, maxLimit);
         }
-        // doplnenie znakov, moze byt hocico do max poctu podla zadania
+        // any chars can be added till limit
         return str + "o".repeat(maxLimit - str.length());
     }
 
-    // dlzka poli bude rovnaka, musi sa to rovnat getSize T
-    // string doplnime do max nejakymi znakmi, a za tym hned int pocet platnych znakov v stringu
+    /**
+     * Create byte array from Patient (all necessary info)
+     */
     @Override
     public byte[] getBytes() {
         ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
@@ -132,12 +145,14 @@ public class Patient implements IData<Patient> {
             }
 
             return hlpByteArrayOutputStream.toByteArray();
-
         } catch (IOException e){
             throw new IllegalStateException("Error during conversion to byte array.");
         }
     }
 
+    /**
+     * Define/create Patient from byte array.
+     */
     @Override
     public void fromBytes(byte[] array) {
         ByteArrayInputStream hlpByteArrayInputStream = new ByteArrayInputStream(array);
