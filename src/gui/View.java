@@ -11,7 +11,6 @@ public class View extends JFrame {
     private JTextField personSurname;
     private JTextField personBirthday;
     private JTextField personID;
-    private JTextField personAddress;
 
     private JTextField testDate;
     private JTextField testPersonID;
@@ -19,7 +18,8 @@ public class View extends JFrame {
     private JTextField testResult;
     private JTextField testValue;
     private JTextField note;
-    private JTextField testAddress;
+
+    private JTextField file;
 
     private JButton generateButton;
     private JButton clearButton;
@@ -86,13 +86,12 @@ public class View extends JFrame {
         testButtons.add(this.testLinHashButton);
         testButtons.add(this.testHeapFileButton);
 
-        JPanel personInputs = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel personInputs = new JPanel(new GridLayout(4, 2, 5, 5));
         personInputs.setBorder(BorderFactory.createTitledBorder("PERSON inputs"));
         this.personName = new JTextField(10);
         this.personSurname = new JTextField(10);
         this.personBirthday = new JTextField(10);
         this.personID = new JTextField(10);
-        this.personAddress = new JTextField(10);
         personInputs.add(new JLabel("First name"));
         personInputs.add(this.personName);
         personInputs.add(new JLabel("Last name"));
@@ -101,8 +100,6 @@ public class View extends JFrame {
         personInputs.add(this.personBirthday);
         personInputs.add(new JLabel("Person ID"));
         personInputs.add(this.personID);
-        personInputs.add(new JLabel("person block address"));
-        personInputs.add(this.personAddress);
 
         JPanel actionPersonButtons = new JPanel();
         actionPersonButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -115,7 +112,7 @@ public class View extends JFrame {
         actionPersonButtons.add(this.editPersonButton);
         actionPersonButtons.add(this.deletePersonButton);
 
-        JPanel testInputs = new JPanel(new GridLayout(8, 2, 5, 5));
+        JPanel testInputs = new JPanel(new GridLayout(6, 2, 5, 5));
         testInputs.setBorder(BorderFactory.createTitledBorder("PCR TEST inputs"));
         this.testDate = new JTextField(10);
         this.testPersonID = new JTextField(10);
@@ -123,7 +120,6 @@ public class View extends JFrame {
         this.testResult = new JTextField(10);
         this.testValue = new JTextField(10);
         this.note = new JTextField(10);
-        this.testAddress = new JTextField(10);
         testInputs.add(new JLabel("Date and time of test"));
         testInputs.add(this.testDate);
         testInputs.add(new JLabel("Person ID"));
@@ -136,8 +132,6 @@ public class View extends JFrame {
         testInputs.add(this.testValue);
         testInputs.add(new JLabel("Note"));
         testInputs.add(this.note);
-        testInputs.add(new JLabel("test block address"));
-        testInputs.add(this.testAddress);
 
         JPanel actionTestButtons = new JPanel();
         actionTestButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -183,10 +177,6 @@ public class View extends JFrame {
         return this.personID.getText();
     }
 
-    public String getPersonAddress() {
-        return this.personAddress.getText();
-    }
-
     public String getTestDate() {
         return this.testDate.getText();
     }
@@ -211,8 +201,8 @@ public class View extends JFrame {
         return this.note.getText();
     }
 
-    public String getTestAddress() {
-        return this.testAddress.getText();
+    public String getFile() {
+        return this.file.getText();
     }
 
     public void clearInputFields() {
@@ -220,14 +210,12 @@ public class View extends JFrame {
         this.personSurname.setText("");
         this.personBirthday.setText("");
         this.personID.setText("");
-        this.personAddress.setText("");
         this.testDate.setText("");
         this.testPersonID.setText("");
         this.testCode.setText("");
         this.testResult.setText("");
         this.testValue.setText("");
         this.note.setText("");
-        this.testAddress.setText("");
     }
 
     public JButton getGenerateButton() {

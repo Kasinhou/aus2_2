@@ -14,7 +14,7 @@ public class Patient implements IData<Patient> {
     private String surname;
     private LocalDate dateOfBirth;
     private String personID;
-    private int[] tests;//TODO testy max 6, ulozit do suboru, -1 neplatne?
+    private int[] tests;//0 neplatny test
 
     public Patient() {
         this.name = "Default";
@@ -30,12 +30,22 @@ public class Patient implements IData<Patient> {
         this.dateOfBirth = dateOfBirth;
         this.personID = personID;
         this.tests = new int[6];
-//        System.out.println(Arrays.toString(this.tests));
-        //todo pridat aj sem testy?
     }
 
     public String getPersonID() {
         return this.personID;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getSurname() {
+        return this.surname;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return this.dateOfBirth;
     }
 
     public boolean addTest(int code) {
@@ -45,8 +55,26 @@ public class Patient implements IData<Patient> {
                 return true;
             }
         }
-        System.out.println("The person has already maximum number of tests.");
+//        System.out.println("The person has already maximum number of tests.");
         return false;
+    }
+
+    public int[] getValidTests() {
+        int count = 0;
+        for (int test : this.tests) {
+            if (test != 0) {
+                ++count;
+            }
+        }
+        int[] validTests = new int[count];
+        int index = 0;
+        for (int test : this.tests) {
+            if (test != 0) {
+                validTests[index] = test;
+                ++index;
+            }
+        }
+        return validTests;
     }
 
     @Override
@@ -152,8 +180,11 @@ public class Patient implements IData<Patient> {
     public String getOutput() {
         StringBuilder sb = new StringBuilder();
         for (int test : this.tests) {
+            if (test == 0) {
+                break;
+            }
             sb.append(test).append("  ");
         }
-        return "Patient name: " + this.name + " " + this.surname + "  |  Date of birth: " + this.dateOfBirth + "  |  ID: " + this.personID + "\nTests: " + sb;
+        return "Patient name: " + this.name + " " + this.surname + "  |  Date of birth: " + this.dateOfBirth + "  |  ID: " + this.personID + "  |  Tests:  " + sb;
     }
 }

@@ -35,7 +35,6 @@ public class LinearHashing<T extends IData<T>> {
         }
     }
 
-    //todo preplnujuce, ciastocne, free,...
     public int insert(T data) {
 //        System.out.println("Inserted all = " + (insertedOverflowCount + insertedMainCount));
         int hashCode = data.getHashCode();
@@ -134,7 +133,7 @@ public class LinearHashing<T extends IData<T>> {
         if (!this.shouldSplit()) {
             return;
         }
-        System.out.println("SPLIT");
+//        System.out.println("SPLIT");
         ++splitCount;
         Block<T> mainSplitBlock = this.mainFile.readBlock(this.splitPointer);
         ArrayList<T> validBlockData = mainSplitBlock.getValidDataArray();
@@ -208,7 +207,6 @@ public class LinearHashing<T extends IData<T>> {
                         overflowBlockFromLowerHash.setIndexToOverflow(overflowAddresses.get(blockChainIndex + 1));//mozno zbytocne kedze by to tu uz malo byt ale istota
                     }
                     this.overflowFile.writeBlock(currentAddress, overflowBlockFromLowerHash);
-//                    this.overflowFile.setBlockAsFull(currentAddress);
 
                     ++blockChainIndex;
                     overflowBlockFromLowerHash = overflowBlocksChain.get(blockChainIndex);
@@ -225,11 +223,6 @@ public class LinearHashing<T extends IData<T>> {
 
             overflowBlockFromLowerHash.setIndexToOverflow(-1);
             this.overflowFile.writeBlock(currentAddress, overflowBlockFromLowerHash);
-//            if (overflowBlockFromLowerHash.isFull()) {
-//                this.overflowFile.setBlockAsFull(currentAddress);
-//            } else if (overflowBlockFromLowerHash.getValidCount() != 0) {
-//                this.overflowFile.setBlockAsPartiallyFree(currentAddress);
-//            } // pridat aj setFree?
 
             // odstranit vsetky bloky pouzite na lower hash
             int usedBlocks = blockChainIndex + 1;
@@ -273,7 +266,6 @@ public class LinearHashing<T extends IData<T>> {
                             overflowBlockFromHigherHash.setIndexToOverflow(overflowAddresses.get(blockChainIndex + 1));//pre istotu
                         }
                         this.overflowFile.writeBlock(currentAddress, overflowBlockFromHigherHash);
-//                        this.overflowFile.setBlockAsFull(currentAddress);
 
                         ++blockChainIndex;
                         overflowBlockFromHigherHash = overflowBlocksChain.get(blockChainIndex);
@@ -285,11 +277,6 @@ public class LinearHashing<T extends IData<T>> {
                 //posledny vzdy zapisem
                 overflowBlockFromHigherHash.setIndexToOverflow(-1);
                 this.overflowFile.writeBlock(currentAddress, overflowBlockFromHigherHash);
-//                if (overflowBlockFromHigherHash.isFull()) {
-//                    this.overflowFile.setBlockAsFull(currentAddress);
-//                } else if (overflowBlockFromHigherHash.getValidCount() != 0) {
-//                    this.overflowFile.setBlockAsPartiallyFree(currentAddress);
-//                }
 
                 int usedBlocks = blockChainIndex + 1;
                 for (int i = 0; i < usedBlocks; ++i) {
@@ -349,23 +336,18 @@ public class LinearHashing<T extends IData<T>> {
         }
 
         Block<T> block = this.mainFile.getBlock(blockAddress);
-        T foundData = this.mainFile.get(blockAddress, data);
-        if (foundData != null) {
-            block.removeData(foundData);
-            block.addData(data);
+        if (block.editData(data)) {
             this.mainFile.writeBlock(blockAddress, block);
             return true;
         }
         int indexToOverflow = block.getIndexToOverflow();
         while (indexToOverflow != -1) {
-            foundData = this.overflowFile.get(indexToOverflow, data);
-            if (foundData != null) {
-                block.removeData(foundData);
-                block.addData(data);
-                this.overflowFile.writeBlock(indexToOverflow, block);
+            Block<T> overflowBlock = this.overflowFile.getBlock(indexToOverflow);
+            if (overflowBlock.editData(data)) {
+                this.overflowFile.writeBlock(indexToOverflow, overflowBlock);
                 return true;
             }
-            indexToOverflow = this.overflowFile.getBlock(indexToOverflow).getIndexToOverflow();
+            indexToOverflow = overflowBlock.getIndexToOverflow();
         }
         return false;
     }

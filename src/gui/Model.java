@@ -2,21 +2,16 @@ package gui;
 
 import main.PCRTest;
 import main.Patient;
-import structure.HeapFile;
 import structure.LinearHashing;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Model {
-//    private HeapFile<Patient> hfPatients;
-//    private HeapFile<PCRTest> hfTests;
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
 
     public Model(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
-//        this.hfPatients = hfPatients;
-//        this.hfTests = hfTests;
         this.lhPatients = lhPatients;
         this.lhTests = lhTests;
     }
@@ -28,7 +23,6 @@ public class Model {
         if (name.length() > 15 || surname.length() > 14 || personID.length() > 10) {
             return "Change according max limit of characters:\nName = 15\nSurname = 14\nID = 10";
         }
-        //do coho vkladat, asi linhash
         int address = this.lhPatients.insert(new Patient(name, surname, dateOfBirth, personID));
         return "Patient with id " + personID + " inserted to block " + address;
     }
@@ -41,48 +35,112 @@ public class Model {
         if (patient == null) {
             return "Patient with id " + personID + " was not found";
         }
-        return patient.getOutput();
+        int[] tests = patient.getValidTests();
+        StringBuilder testsOutput = new StringBuilder();
+        for (int i : tests) {
+            PCRTest test = this.lhTests.get(new PCRTest(null, "", i, false, 0.0, ""));
+            if (test != null) {
+                testsOutput.append("\n").append(test.getOutput());
+            } else {
+                System.out.println("Something is wrong, test of patient not found!");
+            }
+        }
+        return patient.getOutput() + "\nTests of patient [" + tests.length + "]" + testsOutput;
     }
 
-    //todo osetrit vstupy a co editovat
     public String editPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
-        this.lhPatients.edit(new Patient(name, surname, dateOfBirth, personID));
-        return "Not implemented yet";
+        if (personID.length() > 10 || personID.isEmpty()) {
+            return "ID should have min 1 and max 10 characters.";
+        }
+        Patient patient = this.lhPatients.get(new Patient("", "", null, personID));
+        if (patient == null) {
+            return "Patient with id " + personID + " was not found. Not possible to edit.";
+        }
+        if (name.isEmpty()) {
+            name = patient.getName();
+        } else if (name.length() > 15) {
+            return "Name should have 15 characters max.";
+        }
+        if (surname.isEmpty()) {
+            surname = patient.getSurname();
+        } else if (surname.length() > 15) {
+            return "Name should have 15 characters max.";
+        }
+        if (dateOfBirth == null) {
+            dateOfBirth = patient.getDateOfBirth();
+        }
+        Patient editPatient = new Patient(name, surname, dateOfBirth, personID);
+        int[] tests = patient.getValidTests();
+        for (int i : tests) {
+            editPatient.addTest(i);
+        }
+        this.lhPatients.edit(editPatient);
+        return "Edit patient with id " + personID;
     }
 
-    public String deletePatient(String personID) {
-//        if (personID.length() > 10 || personID.isEmpty()) {
-//            return "ID should have min 1 and max 10 characters.";
-//        }
-//        if (blockAddress >= this.hfPatients.getBlockCount()) {
-//            return "Block address out of range of HeapFile.";
-//        }
-//        this.hfPatients.delete(blockAddress, new Patient("", "", null, personID));
-//        return "Patient with id " + personID + " was deleted from";
-        return "NOT IMPLEMENTED.";
-    }
-
-    //TODO osetrit vstupy, pridat aj pacienta
     public String insertTest(LocalDateTime dateTime, String personID, int testCode, boolean testResult, double testValue, String note) {
-//        this.lhPatients.get()
-        this.lhTests.insert(new PCRTest(dateTime, personID, testCode, testResult, testValue, note));
-        return "Insertion test not implemented yet.";
+        if (personID.isEmpty()) {
+            return "Please fill patient ID.";
+        }
+        if (personID.length() > 10 || note.length() > 11) {
+            return "Change according max limit of characters:\nID = 10\nNote = 11";
+        }
+        Patient patient = this.lhPatients.get(new Patient("", "", null, personID));
+        if (patient == null) {
+            return "Not possible to connect test to patient. Patient with id " + personID + " was not found.";
+        }
+        if (!patient.addTest(testCode)) {
+            return "Not possible to add test to patient. Patient with id " + personID + " has already 6 tests.";
+        }
+        this.lhPatients.edit(patient);
+        int address = this.lhTests.insert(new PCRTest(dateTime, personID, testCode, testResult, testValue, note));
+        return "Inserted test with code " + testCode + " for patient " + personID + " on address " + address;
     }
 
     public String getTest(int testCode) {
         PCRTest test = this.lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
         Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
-        System.out.println(patient.getOutput());
         return test.getOutput() + "\n" + patient.getOutput();
     }
 
-    //TODO
-    public String editTest(LocalDateTime dateTime, String personID, int testCode, boolean testResult, double testValue, String note) {
-        this.lhTests.edit(new PCRTest(dateTime, personID, testCode, testResult, testValue, note));//todo naozaj aj person id?
-        return "Edit test not implemented yet.";
+    public String editTest(LocalDateTime dateTime, int testCode, String testResult, String testValue, String note) {
+        PCRTest test = lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
+        if (test == null) {
+            return "Test with code " + testCode + " is not found. Not possible edit.";
+        }
+        if (dateTime == null) {
+            dateTime = test.getDateTime();
+        }
+        if (note.isEmpty()) {
+            note = test.getNote();
+        } else if (note.length() > 11) {
+            return "Note should have 11 characters max.";
+        }
+        boolean result;
+        if (testResult.isEmpty()) {
+            result = test.getTestResult();
+        } else {
+            result = Boolean.parseBoolean(testResult);
+        }
+        double value;
+        if (testValue.isEmpty()) {
+            value = test.getTestValue();
+        } else {
+            try {
+                value = Double.parseDouble(testValue);
+            } catch (NumberFormatException e) {
+                return "Use double for test value.";
+            }
+        }
+        this.lhTests.edit(new PCRTest(dateTime, test.getPersonID(), testCode, result, value, note));
+        return "Edit test with code " + testCode;
     }
 
     public String deleteTest(int testCode) {
+        return "NOT IMPLEMENTED.";
+    }
+
+    public String deletePatient(String personID) {
         return "NOT IMPLEMENTED.";
     }
 

@@ -133,7 +133,6 @@ public class HeapFile<T extends IData<T>> {
         return blockAddress;
     }
 
-    //upravit management rovno tu? todo upravit na management, bud prvy z volnych alebo vytvorit novy blok
     public void writeBlock(int address, Block<T> block) {
         try {
             this.raf.seek((long) address * this.clusterSize);
@@ -182,20 +181,6 @@ public class HeapFile<T extends IData<T>> {
         Block<T> block = this.readBlock(address);
         if (block.removeData(dummyData)) {
             this.writeBlock(address, block);
-//            if (!this.freeBlocksManagement) {
-//                return;//ak nemam tak uz netreba dalej riesit
-//            }
-//            if (this.blockFactor == 1) {
-////                this.freeBlocks.insert(new MyInteger(address));
-//                this.setBlockAsFree(address);
-//            } else if (block.getValidCount() == 0) {
-////                this.partiallyFreeBlocks.delete(new MyInteger(address));
-////                this.freeBlocks.insert(new MyInteger(address));
-//                this.setBlockAsFree(address);
-//            } else if (block.getValidCount() == this.blockFactor - 1) {
-////                this.partiallyFreeBlocks.insert(new MyInteger(address));
-//                this.setBlockAsPartiallyFree(address);
-//            }
         } else {
             System.out.println("Something is wrong with writing to raf after deletion");
         }
@@ -299,6 +284,7 @@ public class HeapFile<T extends IData<T>> {
 //        System.out.println(this.blockFactor);
         try {
             RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
+            fileInfo.setLength(0);
             byte[] infoBytes = this.getInfoBytes();
             fileInfo.write(infoBytes);
             fileInfo.close();

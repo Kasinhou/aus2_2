@@ -73,6 +73,16 @@ public class Block<T extends IData<T>> implements IRecord {
         return null;
     }
 
+    public boolean editData(T data) {
+        for (int i = 0; i < this.validCount; ++i) {
+            if (this.dataArray.get(i).equalsTo(data)) {
+                this.dataArray.set(i, data);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean removeData(T data) {
         for (int i = 0; i < this.validCount; ++i) {
             if (this.dataArray.get(i).equalsTo(data)) {

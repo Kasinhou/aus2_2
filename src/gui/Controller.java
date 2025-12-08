@@ -2,7 +2,6 @@ package gui;
 import main.Generator;
 import main.PCRTest;
 import main.Patient;
-import structure.HeapFile;
 import structure.LinearHashing;
 import test.Tester;
 
@@ -127,18 +126,6 @@ public class Controller {
         this.view.getOutputArea().setText(message);
     }
 
-    private void handleDeletePersonButton() {
-//        int address;
-//        try {
-//            address = Integer.parseInt(this.view.getPersonAddress());
-//        } catch (NumberFormatException e) {
-//            this.view.getOutputArea().setText("Use integer for address.");
-//            return;
-//        }
-        String message = this.model.deletePatient(this.view.getPersonID());
-        this.view.getOutputArea().setText(message);
-    }
-
     private void handleInsertTestButton() {
         LocalDateTime date;
         int code;
@@ -174,27 +161,30 @@ public class Controller {
         this.view.getOutputArea().setText(message);
     }
 
-    //todo porozmyslat nad logikou editu
     private void handleEditTestButton() {
-        LocalDateTime date;
+        LocalDateTime date = null;
         int code;
-        boolean result;
-        double value;
         try {
             code = Integer.parseInt(this.view.getTestCode());
-            value = Double.parseDouble(this.view.getTestValue());
         } catch (NumberFormatException e) {
             this.view.getOutputArea().setText("Use integer for test code.");
             return;
         }
-        try {
-            date = LocalDateTime.parse(this.view.getTestDate().trim());
-        } catch (Exception e) {
-            this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
-            return;
+        String inputDate = this.view.getTestDate().trim();
+        if (!inputDate.isEmpty()) {
+            try {
+                date = LocalDateTime.parse(inputDate);
+            } catch (Exception e) {
+                this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DDTHH:MM:SS");
+                return;
+            }
         }
-        result = Boolean.parseBoolean(this.view.getTestResult());
-        String message = this.model.editTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
+        String message = this.model.editTest(date, code, this.view.getTestResult(), this.view.getTestValue(), this.view.getNote());
+        this.view.getOutputArea().setText(message);
+    }
+
+    private void handleDeletePersonButton() {
+        String message = this.model.deletePatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 

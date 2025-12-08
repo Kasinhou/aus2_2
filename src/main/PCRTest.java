@@ -3,6 +3,7 @@ package main;
 import structure.IData;
 
 import java.io.*;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -39,12 +40,28 @@ public class PCRTest implements IData<PCRTest> {
         return this.testCode == comparedData.getTestCode();
     }
 
-    private int getTestCode() {
+    public int getTestCode() {
         return this.testCode;
     }
 
     public String getPersonID() {
         return this.testPersonID;
+    }
+
+    public LocalDateTime getDateTime() {
+        return this.testDateTime;
+    }
+
+    public boolean getTestResult() {
+        return this.testResult;
+    }
+
+    public double getTestValue() {
+        return this.testValue;
+    }
+
+    public String getNote() {
+        return this.note;
     }
 
     @Override

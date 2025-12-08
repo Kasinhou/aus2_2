@@ -13,22 +13,20 @@ import java.util.Set;
 
 public class Generator {
     private static final int PEOPLE_COUNT = 500;
-    private static final int TESTS_COUNT = 5000;
+    private static final int TESTS_COUNT = 2000;
 
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
     private Faker faker;
-    private Set<String> peopleIDs;
     private ArrayList<String> idsList;
-    private ArrayList<Integer> testCount;
-    private Set<Integer> testCodes;
+//    private ArrayList<Integer> testCount;
+    private ArrayList<Integer> testCodes;
 
     public Generator(LinearHashing<Patient> lhPatients, LinearHashing<PCRTest> lhTests) {
         this.faker = new Faker();
-        this.peopleIDs = new HashSet<>();
         this.idsList = new ArrayList<>();
-        this.testCount = new ArrayList<>();
-        this.testCodes = new HashSet<>();
+//        this.testCount = new ArrayList<>();
+        this.testCodes = new ArrayList<>();
         this.lhPatients = lhPatients;
         this.lhTests = lhTests;
     }
@@ -37,7 +35,7 @@ public class Generator {
         int i = 0;
         while (i < PEOPLE_COUNT) {
             Patient patient = this.generatePatient();
-            System.out.println(patient.getPersonID());
+//            System.out.println(patient.getPersonID());
             this.lhPatients.insert(patient);
             ++i;
         }
@@ -69,9 +67,15 @@ public class Generator {
         int i = 0;
         while (i < TESTS_COUNT) {
             PCRTest test = this.generateTest();
-//            Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
-            //todo how to add test to patient
+            Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
+            if (!patient.addTest(test.getTestCode())) {
+//                System.out.println("Already maximum amount of tests.");
+                this.testCodes.remove((Integer)test.getTestCode());
+                continue;
+            }
+            this.lhPatients.edit(patient);
             this.lhTests.insert(test);
+//            System.out.println(test.getTestCode());
             ++i;
         }
         System.out.println(TESTS_COUNT + " Tests generated.");
@@ -85,18 +89,14 @@ public class Generator {
         double testValue;
         do {
             testCode = this.faker.number().numberBetween(1, Integer.MAX_VALUE);
-        } while (!this.testCodes.add(testCode));
+        } while (!this.addedTestCode(testCode));
         dateTime = faker.date().between(Date.valueOf("1945-01-01"), Date.valueOf("2025-11-21"))
                 .toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime()
                 .withNano(0);
-        int index;
-//        do {
-            index = this.faker.number().numberBetween(0, this.peopleIDs.size());
-            personID = this.idsList.get(index);// TODO osetreit 6 max testov
-//        } while (this.testCount.get(index) < 6);
-//        this.testCount.set(index, this.testCount.get(index) + 1);
+        int index = this.faker.number().numberBetween(0, this.idsList.size());
+        personID = this.idsList.get(index);
         testResult = this.faker.bool().bool();
         testValue = testResult ? this.faker.number().randomDouble(2, 15, 30) : this.faker.number().randomDouble(2, 25, 45);
         note = this.faker.medical().symptoms();
@@ -107,12 +107,20 @@ public class Generator {
         return new PCRTest(dateTime, personID, testCode, testResult, testValue, note);
     }
 
+    private boolean addedTestCode(int code) {
+        if (this.testCodes.contains(code)) {
+            return false;
+        }
+        this.testCodes.add(code);
+        return true;
+    }
+
     private boolean addedPersonID(String id) {
-        if (!this.peopleIDs.add(id)) {
+        if (this.idsList.contains(id)) {
             return false;
         }
         this.idsList.add(id);
-        this.testCount.add(0);
+//        this.testCount.add(0);
         return true;
     }
 }
