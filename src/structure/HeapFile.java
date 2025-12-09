@@ -86,23 +86,6 @@ public class HeapFile<T extends IData<T>> {
         }
     }
 
-    /**
-     * Close file, write all important info.
-     */
-    public void close() {
-        try {
-            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
-            fileInfo.setLength(0);
-            byte[] infoBytes = this.getInfoBytes();
-            fileInfo.write(infoBytes);
-            fileInfo.close();
-
-            this.raf.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public int getBlockFactor() {
         return this.blockFactor;
     }
@@ -181,14 +164,9 @@ public class HeapFile<T extends IData<T>> {
         try {
             this.raf.seek((long) address * this.clusterSize);
             byte[] blockBytes = block.getBytes();
-            this.raf.write(blockBytes);
-
-            // diff between cluster size and block size
-            int empty = this.clusterSize - blockBytes.length;
-            if (empty > 0) {
-                byte[] emptyBytes = new byte[empty];
-                this.raf.write(emptyBytes);
-            }
+            byte[] clusterBytes = new byte[this.clusterSize];
+            System.arraycopy(blockBytes, 0, clusterBytes, 0, blockBytes.length);
+            this.raf.write(clusterBytes);
         } catch (IOException e) {
             System.out.println("Problem in writeBlock.");
             System.out.println(e.getMessage());
@@ -300,29 +278,6 @@ public class HeapFile<T extends IData<T>> {
         this.freeBlocks.delete(mi);
     }
 
-    // used for writing info when closing file
-    private byte[] getInfoBytes() throws IOException {
-        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
-        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
-        hlpOutStream.writeInt(this.clusterSize);
-        hlpOutStream.writeInt(this.blockSize);
-        hlpOutStream.writeInt(this.sizeT);
-        hlpOutStream.writeInt(this.blockFactor);
-        hlpOutStream.writeBoolean(this.freeBlocksManagement);
-        hlpOutStream.writeInt(this.partiallyFreeBlocks.size());
-        ArrayList<MyInteger> allPartiallyFreeBlocks = this.partiallyFreeBlocks.inOrder();
-        for (MyInteger i : allPartiallyFreeBlocks) {
-            hlpOutStream.writeInt(i.getInteger());
-        }
-        ArrayList<MyInteger> allFreeBlocks = this.freeBlocks.inOrder();
-        hlpOutStream.writeInt(allFreeBlocks.size());
-        for (MyInteger i : allFreeBlocks) {
-            hlpOutStream.writeInt(i.getInteger());
-        }
-
-        return hlpByteArrayOutputStream.toByteArray();
-    }
-
     public String getAllOutput() {
         int count;
         try {
@@ -371,6 +326,46 @@ public class HeapFile<T extends IData<T>> {
 
         }
         return sb.toString();
+    }
+
+    /**
+     * Close file, write all important info.
+     */
+    public void close() {
+        try {
+            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
+            fileInfo.setLength(0);
+            byte[] infoBytes = this.getInfoBytes();
+            fileInfo.write(infoBytes);
+            fileInfo.close();
+
+            this.raf.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // used for writing info when closing file
+    private byte[] getInfoBytes() throws IOException {
+        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
+        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
+        hlpOutStream.writeInt(this.clusterSize);
+        hlpOutStream.writeInt(this.blockSize);
+        hlpOutStream.writeInt(this.sizeT);
+        hlpOutStream.writeInt(this.blockFactor);
+        hlpOutStream.writeBoolean(this.freeBlocksManagement);
+        hlpOutStream.writeInt(this.partiallyFreeBlocks.size());
+        ArrayList<MyInteger> allPartiallyFreeBlocks = this.partiallyFreeBlocks.inOrder();
+        for (MyInteger i : allPartiallyFreeBlocks) {
+            hlpOutStream.writeInt(i.getInteger());
+        }
+        ArrayList<MyInteger> allFreeBlocks = this.freeBlocks.inOrder();
+        hlpOutStream.writeInt(allFreeBlocks.size());
+        for (MyInteger i : allFreeBlocks) {
+            hlpOutStream.writeInt(i.getInteger());
+        }
+
+        return hlpByteArrayOutputStream.toByteArray();
     }
 
     /**

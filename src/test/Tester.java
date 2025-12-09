@@ -18,7 +18,7 @@ public class Tester {
     public String testHeapFile() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING HEAP FILE ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        HeapFile<Patient> heapFile = new HeapFile<>("testHF.bin", 300, "src/testHFI.bin", Patient.class, true);
+        HeapFile<Patient> heapFile = new HeapFile<>("src/test/testHF.bin", 300, "src/test/testHFI.bin", Patient.class, true);
         heapFile.open();
         Generator generator = new Generator(null, null);
         ArrayList<Patient> patients = new ArrayList<>();
@@ -100,7 +100,7 @@ public class Tester {
     public String testLinearHashing() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING LINEAR HASHING ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        LinearHashing<Patient> linHash = new LinearHashing<>("testLHM.bin", 1000, "testLHMI.bin", "testLHO.bin", 500, "testLHOI.bin", Patient.class);
+        LinearHashing<Patient> linHash = new LinearHashing<>("src/test/testLHM.bin", 1000, "src/test/testLHMI.bin", "src/test/testLHO.bin", 500, "src/test/testLHOI.bin", Patient.class, "src/test/testLHI.bin");
         linHash.open();
         ArrayList<Patient> patients = new ArrayList<>();
         Generator generator = new Generator(null, null);

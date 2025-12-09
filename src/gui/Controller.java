@@ -61,12 +61,12 @@ public class Controller {
     }
 
     private void handleOpenButton() {
-        String message = this.who.openNewFile();
+        String message = this.who.open(this.view.getConfig().trim());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleLoadButton() {
-        String message = this.who.loadFile();
+        String message = this.who.load(this.view.getConfig().trim());
         this.view.getOutputArea().setText(message);
     }
 

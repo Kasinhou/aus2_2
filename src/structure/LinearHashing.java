@@ -1,5 +1,6 @@
 package structure;
 
+import java.io.*;
 import java.util.ArrayList;
 
 public class LinearHashing<T extends IData<T>> {
@@ -11,39 +12,53 @@ public class LinearHashing<T extends IData<T>> {
     private int level;
     private int insertedMainCount;
     private int insertedOverflowCount;
-    private int splitCount;
 
-    Class<T> classType;
+    private Class<T> classType;
+    private String pathToInfoLH;
 
-    public LinearHashing(String mainFilePath, int mainClusterSize, String pathToInfoMain, String overflowFilePath, int overflowClusterSize, String pathToInfoOverflow, Class<T> classType) {
+    public LinearHashing(String mainFilePath, int mainClusterSize, String pathToInfoMain, String overflowFilePath, int overflowClusterSize, String pathToInfoOverflow, Class<T> classType, String pathToinfoLH) {
         this.mainFile = new HeapFile<>(mainFilePath, mainClusterSize, pathToInfoMain, classType, false);
         this.overflowFile = new HeapFile<>(overflowFilePath, overflowClusterSize, pathToInfoOverflow, classType, true);
+        this.classType = classType;
+        this.pathToInfoLH = pathToinfoLH;
+    }
+
+    /**
+     * Open new file, also for heap files and set attributes to default values.
+     */
+    public void open() {
+        this.mainFile.open();
+        this.overflowFile.open();
+
         this.splitPointer = 0;
         this.blockGroupSize = 2;
         this.level = 0;
         this.insertedMainCount = 0;
         this.insertedOverflowCount = 0;
-        this.splitCount = 0;
-        this.classType = classType;
-    }
 
-    public void open() {
-        this.mainFile.open();
-        this.overflowFile.open();
         for (int i = 0; i < this.blockGroupSize; ++i) {
             this.mainFile.writeBlock(i, new Block<>(this.mainFile.getBlockFactor(), this.classType));
         }
     }
 
-    // split, hesovacka, level, ostatne?
+    /**
+     * Loads attributes from info file and loads heap files in order to continue working with the same data.
+     */
     public void load() {
         this.mainFile.load();
         this.overflowFile.load();
-    }
-
-    public void close() {
-        this.mainFile.close();
-        this.overflowFile.close();
+        try {
+            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfoLH, "rw");
+            this.splitPointer = fileInfo.readInt();
+            this.level = fileInfo.readInt();
+            this.blockGroupSize = fileInfo.readInt();
+            this.insertedMainCount = fileInfo.readInt();
+            this.insertedOverflowCount = fileInfo.readInt();
+            fileInfo.close();
+        } catch (IOException e) {
+            System.out.println("Something is wrong with loading info in LH.");
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -129,17 +144,18 @@ public class LinearHashing<T extends IData<T>> {
         int blockAddress = this.calculateAddress(hashCode);
 
         Block<T> block = this.mainFile.readBlock(blockAddress);
-        T foundData = this.mainFile.get(blockAddress, data);
+        T foundData = block.findData(data);
         if (foundData != null) {
             return foundData;
         }
         int indexToOverflow = block.getIndexToOverflow();
         while (indexToOverflow != -1) {
-            foundData = this.overflowFile.get(indexToOverflow, data);
+            block = this.overflowFile.readBlock(indexToOverflow);
+            foundData = block.findData(data);
             if (foundData != null) {
                 return foundData;
             }
-            indexToOverflow = this.overflowFile.readBlock(indexToOverflow).getIndexToOverflow();
+            indexToOverflow = block.getIndexToOverflow();
         }
         return null;
     }
@@ -199,7 +215,7 @@ public class LinearHashing<T extends IData<T>> {
         if (!this.shouldSplit()) {
             return;
         }
-        ++splitCount;
+//        ++splitCount;
         Block<T> mainSplitBlock = this.mainFile.readBlock(this.splitPointer);
         ArrayList<T> validBlockData = mainSplitBlock.getValidDataArray();
         ArrayList<T> lowerHash = new ArrayList<>();//data ktore ostavaju na tej istej adrese
@@ -376,6 +392,34 @@ public class LinearHashing<T extends IData<T>> {
         String out = "===============================START MAIN FILE=====================================\n\n" + this.mainFile.getAllOutput() + "\n===============================END MAIN FILE=========================================\n\n";
         out += "===============================START OVERFLOW FILE==================================\n\n" + this.overflowFile.getAllOutput() + "\n===============================END OVERFLOW FILE=====================================\n\n";
         return out;
+    }
+
+    public void close() {
+        this.mainFile.close();
+        this.overflowFile.close();
+        try {
+            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfoLH, "rw");
+            fileInfo.setLength(0);
+            byte[] infoBytes = this.getInfoBytes();
+            fileInfo.write(infoBytes);
+            fileInfo.close();
+        } catch (IOException e) {
+            System.out.println("Something is wrong with writing info to LH.");
+            throw new RuntimeException(e);
+        }
+    }
+
+    // used for writing info when closing file
+    private byte[] getInfoBytes() throws IOException {
+        ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
+        DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
+        hlpOutStream.writeInt(this.splitPointer);
+        hlpOutStream.writeInt(this.level);
+        hlpOutStream.writeInt(this.blockGroupSize);
+        hlpOutStream.writeInt(this.insertedMainCount);
+        hlpOutStream.writeInt(this.insertedOverflowCount);
+
+        return hlpByteArrayOutputStream.toByteArray();
     }
 
     // Method used in tester to verify if there is no data missing

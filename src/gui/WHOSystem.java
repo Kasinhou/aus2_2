@@ -5,6 +5,10 @@ import main.PCRTest;
 import main.Patient;
 import structure.LinearHashing;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -15,15 +19,23 @@ public class WHOSystem {
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
     private Generator generator;
+    private String configPath;
+    private String lhPatientsPath;
+    private String lhTestsPath;
+    private String mainPatientsPath;
+    private int mainPatientsClusterSize;
+    private String mainPatientsInfoPath;
+    private String overflowPatientsPath;
+    private int overflowPatientsClusterSize;
+    private String overflowPatientsInfoPath;
+    private String mainTestsPath;
+    private int mainTestsClusterSize;
+    private String mainTestsInfoPath;
+    private String overflowTestsPath;
+    private int overflowTestsClusterSize;
+    private String overflowTestsInfoPath;
 
     public WHOSystem() {
-        this.lhPatients = new LinearHashing<>("mainPatients.bin", 400,
-                "mainPatientsInfo.bin", "overflowPatients.bin", 200,
-                "overflowPatientsInfo.bin", Patient.class);
-        this.lhTests = new LinearHashing<>("mainTests.bin", 800,
-                "mainTestsInfo.bin", "overflowTests.bin", 400,
-                "overflowTestsInfo.bin", PCRTest.class);
-        this.generator = new Generator(this.lhPatients, this.lhTests);
     }
 
     // Insert patient with user inputs to LH if everything is fine
@@ -114,6 +126,9 @@ public class WHOSystem {
     // Find test based on test code from user, with its patient info
     public String getTest(int testCode) {
         PCRTest test = this.lhTests.get(new PCRTest(null, "", testCode, false, 0.0, ""));
+        if (test == null) {
+            return "Test with code " + testCode + " was not found";
+        }
         Patient patient = this.lhPatients.get(new Patient("", "", null, test.getPersonID()));
         return test.getOutput() + "\n" + patient.getOutput();
     }
@@ -177,24 +192,108 @@ public class WHOSystem {
         return "Generated patients and tests.";
     }
 
-    // Opening new binary file
-    public String openNewFile() {
-        this.lhPatients.open();
-        this.lhTests.open();
-        return "Opening patients and tests files.";
+    // Opening new binary file based on config file
+    public String open(String configPath) {
+        if (configPath.isEmpty()) {
+            return "You have to fill input path to config with files paths and information what you want to open.";
+        }
+        try {
+            this.loadConfig(configPath);
+
+            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, this.mainPatientsClusterSize,
+                    this.mainPatientsInfoPath, this.overflowPatientsPath, this.overflowPatientsClusterSize,
+                    this.overflowPatientsInfoPath, Patient.class, this.lhPatientsPath);
+            this.lhTests = new LinearHashing<>(this.mainTestsPath, this.mainTestsClusterSize,
+                    this.mainTestsInfoPath, this.overflowTestsPath, this.overflowTestsClusterSize,
+                    this.overflowTestsInfoPath, PCRTest.class, this.lhTestsPath);
+            this.generator = new Generator(this.lhPatients, this.lhTests);
+
+            // open files, new ones
+            this.lhPatients.open();
+            this.lhTests.open();
+
+            return "Opened new files from config: " + configPath;
+        } catch (NumberFormatException e) {
+            return "Error parsing config file: " + e.getMessage();
+        }
     }
 
-    // Loading from binary file
-    public String loadFile() {
-        this.lhPatients.load();
-        this.lhTests.load();
-        return "Loading info file and continue with lin hash files.";
+    // Loading paths and info from config file
+    public String load(String configPath) {
+        if (configPath.isEmpty()) {
+            return "You have to fill input path to config with files paths and information what you want to load.";
+        }
+        try {
+            File configFile = new File(configPath);
+            if (!configFile.exists()) {
+                return "Config file not found: " + configPath;
+            }
+            
+            this.loadConfig(configPath);
+
+            // Check if info files exist (required for loading)
+            if (!new File(mainPatientsInfoPath).exists() || !new File(overflowPatientsInfoPath).exists() ||
+                !new File(mainTestsInfoPath).exists() || !new File(overflowTestsInfoPath).exists()) {
+                return "Error: Info files not found. Use 'Open' to create new files first.\n" +
+                       "Required info files: " + mainPatientsInfoPath + ", " + overflowPatientsInfoPath +
+                       ", " + mainTestsInfoPath + ", " + overflowTestsInfoPath;
+            }
+
+            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, this.mainPatientsClusterSize, this.mainPatientsInfoPath,
+                    this.overflowPatientsPath, this.overflowPatientsClusterSize, this.overflowPatientsInfoPath, Patient.class, this.lhPatientsPath);
+            this.lhTests = new LinearHashing<>(this.mainTestsPath, this.mainTestsClusterSize, this.mainTestsInfoPath,
+                    this.overflowTestsPath, this.overflowTestsClusterSize, this.overflowTestsInfoPath, PCRTest.class, this.lhTestsPath);
+            this.generator = new Generator(this.lhPatients, this.lhTests);
+
+            this.lhPatients.load();
+            this.lhTests.load();
+
+            return "Loaded paths and info from config: " + configPath;
+        } catch (NumberFormatException e) {
+            return "Error parsing config file: " + e.getMessage();
+        }
     }
 
-    // Closing binary file
+    private String loadConfig(String configPath) {
+        try {
+            this.configPath = configPath;
+            BufferedReader configReader = new BufferedReader(new FileReader(this.configPath));
+            this.lhPatientsPath = configReader.readLine();
+            this.lhTestsPath = configReader.readLine();
+
+            // patients -> main, cluster size, main info, overflow, cluster size, overflow info
+            this.mainPatientsPath = configReader.readLine();
+            this.mainPatientsClusterSize = Integer.parseInt(configReader.readLine());
+            this.mainPatientsInfoPath = configReader.readLine();
+            this.overflowPatientsPath = configReader.readLine();
+            this.overflowPatientsClusterSize = Integer.parseInt(configReader.readLine());
+            this.overflowPatientsInfoPath = configReader.readLine();
+
+            // tests -> main, cluster size, main info, overflow, cluster size, overflow info
+            this.mainTestsPath = configReader.readLine();
+            this.mainTestsClusterSize = Integer.parseInt(configReader.readLine());
+            this.mainTestsInfoPath = configReader.readLine();
+            this.overflowTestsPath = configReader.readLine();
+            this.overflowTestsClusterSize = Integer.parseInt(configReader.readLine());
+            this.overflowTestsInfoPath = configReader.readLine();
+
+            return "Loaded paths and info from config: " + configPath;
+        } catch (IOException e) {
+            return "Error opening files from config: " + e.getMessage();
+        } catch (NumberFormatException e) {
+            return "Error parsing config file: " + e.getMessage();
+        }
+    }
+
     public String closeFile() {
+        if (this.lhPatients == null || this.lhTests == null) {
+            return "No LHs are currently open.";
+        }
         this.lhPatients.close();
         this.lhTests.close();
-        return "Closing both Linear Hashing files";
+        this.lhPatients = null;
+        this.lhTests = null;
+        String configInfo = this.configPath != null ? " (" + this.configPath + ")" : "";
+        return "Closed both Linear Hashing files" + configInfo;
     }
 }
