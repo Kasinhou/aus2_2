@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
  * Controller which actions from user is going to happen.
  */
 public class Controller {
-    private Model model;
+    private WHOSystem who;
     private View view;
     private Tester tester;
 
-    public Controller(Model model, View view, Tester tester) {
-        this.model = model;
+    public Controller(WHOSystem who, View view, Tester tester) {
+        this.who = who;
         this.view = view;
         this.tester = tester;
         this.createMainWindow();
@@ -41,7 +41,7 @@ public class Controller {
     }
 
     private void handleGenerateButton() {
-        String message = this.model.generate();
+        String message = this.who.generate();
         this.view.getOutputArea().setText(message);
     }
 
@@ -51,27 +51,27 @@ public class Controller {
     }
 
     private void handleOutputPatientsButton() {
-        String message = this.model.getAllOutputPatients();
+        String message = this.who.getAllOutputPatients();
         this.view.getOutputArea().setText(message);
     }
 
     private void handleOutputTestsButton() {
-        String message = this.model.getAllOutputTests();
+        String message = this.who.getAllOutputTests();
         this.view.getOutputArea().setText(message);
     }
 
     private void handleOpenButton() {
-        String message = this.model.openNewFile();
+        String message = this.who.openNewFile();
         this.view.getOutputArea().setText(message);
     }
 
     private void handleLoadButton() {
-        String message = this.model.loadFile();
+        String message = this.who.loadFile();
         this.view.getOutputArea().setText(message);
     }
 
     private void handleCloseButton() {
-        String message = this.model.closeFile();
+        String message = this.who.closeFile();
         this.view.getOutputArea().setText(message);
     }
 
@@ -93,12 +93,12 @@ public class Controller {
             this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DD");
             return;
         }
-        String message = this.model.insertPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
+        String message = this.who.insertPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleGetPersonButton() {
-        String message = this.model.getPatient(this.view.getPersonID());
+        String message = this.who.getPatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
@@ -113,7 +113,7 @@ public class Controller {
                 return;
             }
         }
-        String message = this.model.editPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
+        String message = this.who.editPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
@@ -136,7 +136,7 @@ public class Controller {
             return;
         }
         result = Boolean.parseBoolean(this.view.getTestResult());
-        String message = this.model.insertTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
+        String message = this.who.insertTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);
     }
 
@@ -148,7 +148,7 @@ public class Controller {
             this.view.getOutputArea().setText("Use integer for test code.");
             return;
         }
-        String message = this.model.getTest(code);
+        String message = this.who.getTest(code);
         this.view.getOutputArea().setText(message);
     }
 
@@ -170,17 +170,17 @@ public class Controller {
                 return;
             }
         }
-        String message = this.model.editTest(date, code, this.view.getTestResult(), this.view.getTestValue(), this.view.getNote());
+        String message = this.who.editTest(date, code, this.view.getTestResult(), this.view.getTestValue(), this.view.getNote());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleDeletePersonButton() {
-        String message = this.model.deletePatient(this.view.getPersonID());
+        String message = this.who.deletePatient(this.view.getPersonID());
         this.view.getOutputArea().setText(message);
     }
 
     private void handleDeleteTestButton() {
-        String message = this.model.deleteTest(Integer.parseInt(this.view.getTestCode()));
+        String message = this.who.deleteTest(0);
         this.view.getOutputArea().setText(message);
     }
 }

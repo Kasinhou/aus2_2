@@ -6,6 +6,9 @@ import avl.MyInteger;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * Class HeapFile represents unsorted file of data on disk, used in LH here (can be used even for other structures)
+ */
 public class HeapFile<T extends IData<T>> {
     private String path;
     private String pathToInfo;
@@ -22,7 +25,7 @@ public class HeapFile<T extends IData<T>> {
 
     private Class<T> classType;
 
-    public HeapFile(String pathToFile, int clusterSize, String pathToInfo,Class<T> classType, boolean freeBlocksManagement) {
+    public HeapFile(String pathToFile, int clusterSize, String pathToInfo, Class<T> classType, boolean freeBlocksManagement) {
         this.path = pathToFile;
         this.pathToInfo = pathToInfo;
         this.clusterSize = clusterSize;
@@ -40,6 +43,9 @@ public class HeapFile<T extends IData<T>> {
         this.blockSize = 2 * Integer.BYTES + this.sizeT * this.blockFactor;
     }
 
+    /**
+     * Opens new file.
+     */
     public void open() {
         try {
             this.raf = new RandomAccessFile(this.path, "rw");
@@ -52,14 +58,55 @@ public class HeapFile<T extends IData<T>> {
         }
     }
 
+    /**
+     * Loads info from file and continue working on.
+     */
+    public void load() {
+        try {
+            this.raf = new RandomAccessFile(this.path, "rw");
+            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
+            this.clusterSize = fileInfo.readInt();
+            this.blockSize = fileInfo.readInt();
+            this.sizeT = fileInfo.readInt();
+            this.blockFactor = fileInfo.readInt();
+            this.freeBlocksManagement = fileInfo.readBoolean();
+            int partiallyFreeSize = fileInfo.readInt();
+            for (int i = 0; i < partiallyFreeSize; ++i) {
+                this.partiallyFreeBlocks.insert(new MyInteger(fileInfo.readInt()));
+            }
+            int freeSize = fileInfo.readInt();
+            for (int i = 0; i < freeSize; ++i) {
+                this.freeBlocks.insert(new MyInteger(fileInfo.readInt()));
+            }
+            fileInfo.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Close file, write all important info.
+     */
+    public void close() {
+        try {
+            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
+            fileInfo.setLength(0);
+            byte[] infoBytes = this.getInfoBytes();
+            fileInfo.write(infoBytes);
+            fileInfo.close();
+
+            this.raf.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public int getBlockFactor() {
         return this.blockFactor;
     }
 
-    public Block<T> getBlock(int blockAddress) {
-        return this.readBlock(blockAddress);
-    }
-
+    // number of blocks in file
     public int getBlockCount() {
         int count;
         try {
@@ -72,9 +119,7 @@ public class HeapFile<T extends IData<T>> {
     }
 
     /**
-     *
-     * @param data
-     * @return adresa bloku kde to uskaldnil
+     * Add data to heap file and returns the block where it was inserted.
      */
     public int insert(T data) {
         int blockAddress;
@@ -163,9 +208,7 @@ public class HeapFile<T extends IData<T>> {
     }
 
     /**
-     * pristupim na adresu, spristupnim Block a v nom porovnavam T
-     * @param address ta adresa bloku ktoru vratil insert
-     * @return
+     * Find data on address, data is compared by equals method.
      */
     public T get(int address, T dummyData) {
         Block<T> block = this.readBlock(address);
@@ -173,9 +216,7 @@ public class HeapFile<T extends IData<T>> {
     }
 
     /**
-     * pristupim na adresu, spristupnim Block a v nom porovnavam T
-     * @param address ta adresa bloku ktoru vratil insert
-     * @return bud T alebo true false
+     * Delete data on address defined by dummy data and using equals method
      */
     public void delete(int address, T dummyData) {
         Block<T> block = this.readBlock(address);
@@ -184,12 +225,9 @@ public class HeapFile<T extends IData<T>> {
         } else {
             System.out.println("Something is wrong with writing to raf after deletion");
         }
-//        if (address == (this.getBlockCount() - 1) && block.getValidCount() == 0) {
-//            this.handleFreeBlocks(address);
-//        }
     }
 
-    // vyriesenie volnych blokov na konci suboru
+    // Cut all free blocks at the end of file
     private void handleFreeBlocks(int lastBlock) {
         ArrayList<MyInteger> allFreeBlocks = this.freeBlocks.inOrder();
         if (lastBlock != (allFreeBlocks.get(allFreeBlocks.size() - 1)).getInteger()) {
@@ -223,11 +261,9 @@ public class HeapFile<T extends IData<T>> {
         }
         MyInteger mi = new MyInteger(blockAddress);
         this.freeBlocks.insert(mi);
-//        if (this.blockFactor != 1) {
         this.partiallyFreeBlocks.delete(mi);
-//        }
 
-        //isto tu? lebo v linhash zapisujem blok, postupne by sa toto vykonalo
+        // if the block is last one, handle free blocks at the end
         if (blockAddress == this.getBlockCount() - 1) {
             this.handleFreeBlocks(blockAddress);
         }
@@ -241,9 +277,7 @@ public class HeapFile<T extends IData<T>> {
         if (this.blockFactor != 1) {
             this.partiallyFreeBlocks.insert(mi);
         }
-//        if (this.freeBlocks.find(mi) != null) {
         this.freeBlocks.delete(mi);
-//        }
     }
 
     public void setBlockAsFull(int blockAddress) {
@@ -255,50 +289,13 @@ public class HeapFile<T extends IData<T>> {
         this.freeBlocks.delete(mi);
     }
 
-    public void load() {
-        try {
-            this.raf = new RandomAccessFile(this.path, "rw");
-            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
-            this.clusterSize = fileInfo.readInt();
-            this.blockFactor = fileInfo.readInt();
-            this.freeBlocksManagement = fileInfo.readBoolean();
-            int partiallyFreeSize = fileInfo.readInt();
-            for (int i = 0; i < partiallyFreeSize; ++i) {
-                this.partiallyFreeBlocks.insert(new MyInteger(fileInfo.readInt()));
-            }
-            int freeSize = fileInfo.readInt();
-            for (int i = 0; i < freeSize; ++i) {
-                this.freeBlocks.insert(new MyInteger(fileInfo.readInt()));
-            }
-            fileInfo.close();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void close() {
-//        System.out.println(this.partiallyFreeBlocks);
-//        System.out.println(this.freeBlocks);
-//        System.out.println(this.clusterSize);
-//        System.out.println(this.blockFactor);
-        try {
-            RandomAccessFile fileInfo = new RandomAccessFile(this.pathToInfo, "rw");
-            fileInfo.setLength(0);
-            byte[] infoBytes = this.getInfoBytes();
-            fileInfo.write(infoBytes);
-            fileInfo.close();
-
-            this.raf.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    // used for writing info when closing file
     private byte[] getInfoBytes() throws IOException {
         ByteArrayOutputStream hlpByteArrayOutputStream = new ByteArrayOutputStream();
         DataOutputStream hlpOutStream = new DataOutputStream(hlpByteArrayOutputStream);
         hlpOutStream.writeInt(this.clusterSize);
+        hlpOutStream.writeInt(this.blockSize);
+        hlpOutStream.writeInt(this.sizeT);
         hlpOutStream.writeInt(this.blockFactor);
         hlpOutStream.writeBoolean(this.freeBlocksManagement);
         hlpOutStream.writeInt(this.partiallyFreeBlocks.size());
@@ -316,7 +313,6 @@ public class HeapFile<T extends IData<T>> {
     }
 
     public String getAllOutput() {
-        // block na adrese ..., ... zaznamy platne, validcount ...
         int count;
         try {
             count = (int) (this.raf.length() / this.clusterSize);

@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 /**
  * Class which handles functions on gui (returns messages to controller after doing queries)
  */
-public class Model {
+public class WHOSystem {
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;
     private Generator generator;
 
-    public Model() {
+    public WHOSystem() {
         this.lhPatients = new LinearHashing<>("mainPatients.bin", 400,
                 "mainPatientsInfo.bin", "overflowPatients.bin", 200,
                 "overflowPatientsInfo.bin", Patient.class);

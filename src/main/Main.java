@@ -1,7 +1,7 @@
 package main;
 
 import gui.Controller;
-import gui.Model;
+import gui.WHOSystem;
 import gui.View;
 import test.Tester;
 
@@ -14,8 +14,8 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             View view = new View();
-            Model model = new Model();
-            Controller controller = new Controller(model, view, new Tester());
+            WHOSystem who = new WHOSystem();
+            Controller controller = new Controller(who, view, new Tester());
             view.setVisible(true);
         });
     }

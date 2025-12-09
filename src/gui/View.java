@@ -19,8 +19,6 @@ public class View extends JFrame {
     private JTextField testValue;
     private JTextField note;
 
-    private JTextField file;
-
     private JButton generateButton;
     private JButton clearButton;
     private JButton outputPatientsButton;
@@ -31,7 +29,6 @@ public class View extends JFrame {
     private JButton testLinHashButton;
     private JButton testHeapFileButton;
 
-
     private JButton insertPersonButton;
     private JButton getPersonButton;
     private JButton editPersonButton;
@@ -40,6 +37,8 @@ public class View extends JFrame {
     private JButton getTestButton;
     private JButton editTestButton;
     private JButton deleteTestButton;
+
+    private JFileChooser filePM;
 
     private JTextArea outputArea;
 
@@ -59,24 +58,6 @@ public class View extends JFrame {
         basicButtons.add(new JLabel("BASIC"));
         basicButtons.add(this.generateButton);
         basicButtons.add(this.clearButton);
-
-        JPanel fileButtons = new JPanel();
-        fileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        this.openButton = new JButton("Open");
-        this.loadButton = new JButton("Load");
-        this.closeButton = new JButton("Close");
-        fileButtons.add(new JLabel("FILE"));
-        fileButtons.add(this.openButton);
-        fileButtons.add(this.loadButton);
-        fileButtons.add(this.closeButton);
-
-        JPanel outputButtons = new JPanel();
-        outputButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        this.outputPatientsButton = new JButton("Patients");
-        this.outputTestsButton = new JButton("Tests");
-        outputButtons.add(new JLabel("OUTPUT"));
-        outputButtons.add(this.outputPatientsButton);
-        outputButtons.add(this.outputTestsButton);
 
         JPanel testButtons = new JPanel();
         testButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -107,10 +88,12 @@ public class View extends JFrame {
         this.getPersonButton = new JButton("Get");
         this.editPersonButton = new JButton("Edit");
         this.deletePersonButton = new JButton("Delete");
+        this.outputPatientsButton = new JButton("Output");
         actionPersonButtons.add(this.insertPersonButton);
         actionPersonButtons.add(this.getPersonButton);
         actionPersonButtons.add(this.editPersonButton);
         actionPersonButtons.add(this.deletePersonButton);
+        actionPersonButtons.add(this.outputPatientsButton);
 
         JPanel testInputs = new JPanel(new GridLayout(6, 2, 5, 5));
         testInputs.setBorder(BorderFactory.createTitledBorder("PCR TEST inputs"));
@@ -139,26 +122,49 @@ public class View extends JFrame {
         this.getTestButton = new JButton("Get");
         this.editTestButton = new JButton("Edit");
         this.deleteTestButton = new JButton("Delete");
+        this.outputTestsButton = new JButton("Output");
         actionTestButtons.add(this.insertTestButton);
         actionTestButtons.add(this.getTestButton);
         actionTestButtons.add(this.editTestButton);
         actionTestButtons.add(this.deleteTestButton);
+        actionTestButtons.add(this.outputTestsButton);
 
         this.outputArea = new JTextArea();
         this.outputArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(this.outputArea);
 
         leftPanel.add(basicButtons);
-        leftPanel.add(fileButtons);
-        leftPanel.add(outputButtons);
         leftPanel.add(testButtons);
         leftPanel.add(personInputs);
         leftPanel.add(actionPersonButtons);
         leftPanel.add(testInputs);
         leftPanel.add(actionTestButtons);
 
+        JPanel downPanel = new JPanel();
+        downPanel.setLayout(new BoxLayout(downPanel, BoxLayout.Y_AXIS));
+
+        JPanel fileButtons = new JPanel();
+        fileButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        this.openButton = new JButton("Open");
+        this.loadButton = new JButton("Load");
+        this.closeButton = new JButton("Close");
+//        fileButtons.add(new JLabel("FILE"));
+        fileButtons.add(this.openButton);
+        fileButtons.add(this.loadButton);
+        fileButtons.add(this.closeButton);
+
+//        this.filePM = new JFileChooser();
+//        fileButtons.add(this.filePM);
+
+        downPanel.add(fileButtons);
+
         add(leftPanel, BorderLayout.WEST);
         add(scrollPane, BorderLayout.CENTER);
+        add(downPanel, BorderLayout.SOUTH);
+    }
+
+    public JFileChooser getFilePM() {
+        return this.filePM;
     }
 
     public String getPersonName() {
@@ -199,10 +205,6 @@ public class View extends JFrame {
 
     public String getNote() {
         return this.note.getText();
-    }
-
-    public String getFile() {
-        return this.file.getText();
     }
 
     public void clearInputFields() {
