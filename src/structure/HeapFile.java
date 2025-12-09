@@ -17,6 +17,7 @@ public class HeapFile<T extends IData<T>> {
     private int blockSize;
     private int sizeT;
 
+    // management of free blocks
     private AVLTree<MyInteger> freeBlocks;
     private AVLTree<MyInteger> partiallyFreeBlocks;
     private boolean freeBlocksManagement;
@@ -143,6 +144,9 @@ public class HeapFile<T extends IData<T>> {
         return blockAddress;
     }
 
+    /**
+     * returns block from byte array defined by block address
+     */
     public Block<T> readBlock(int address) {
         Block<T> block = new Block<>(this.blockFactor, this.classType);
         byte[] readBytes;
@@ -159,17 +163,9 @@ public class HeapFile<T extends IData<T>> {
         return block;
     }
 
-    // only for free management blocks
-    public int findFreeBlockAddress() {
-        if (!this.freeBlocksManagement) {
-            return -1;
-        }
-        if (!this.freeBlocks.isEmpty()) {
-            return this.freeBlocks.findMinimum().getInteger();
-        }
-        return -1;
-    }
-
+    /**
+     * writes new block at the end of the file
+     */
     public int writeNewBlock(T data) {
         Block<T> block = new Block<>(this.blockFactor, this.classType);
         int blockAddress = this.getBlockCount();
@@ -178,13 +174,16 @@ public class HeapFile<T extends IData<T>> {
         return blockAddress;
     }
 
+    /**
+     * writes block to byte array defined by block address
+     */
     public void writeBlock(int address, Block<T> block) {
         try {
             this.raf.seek((long) address * this.clusterSize);
             byte[] blockBytes = block.getBytes();
             this.raf.write(blockBytes);
 
-            //mozno skusit priradit hned ked pisem do suboru, nie oddelene
+            // diff between cluster size and block size
             int empty = this.clusterSize - blockBytes.length;
             if (empty > 0) {
                 byte[] emptyBytes = new byte[empty];
@@ -198,6 +197,7 @@ public class HeapFile<T extends IData<T>> {
         if (!this.freeBlocksManagement) {
             return;
         }
+        // if management of free blocks is true, sets the block
         if (block.isFull()) {
             this.setBlockAsFull(address);
         } else if (block.getValidCount() != 0) {
@@ -255,7 +255,18 @@ public class HeapFile<T extends IData<T>> {
         }
     }
 
-    public void setBlockAsFree(int blockAddress) {
+    // only for free management blocks
+    public int findFreeBlockAddress() {
+        if (!this.freeBlocksManagement) {
+            return -1;
+        }
+        if (!this.freeBlocks.isEmpty()) {
+            return this.freeBlocks.findMinimum().getInteger();
+        }
+        return -1;
+    }
+
+    private void setBlockAsFree(int blockAddress) {
         if (!this.freeBlocksManagement) {
             return;
         }
@@ -269,7 +280,7 @@ public class HeapFile<T extends IData<T>> {
         }
     }
 
-    public void setBlockAsPartiallyFree(int blockAddress) {
+    private void setBlockAsPartiallyFree(int blockAddress) {
         if (!this.freeBlocksManagement) {
             return;
         }
@@ -280,7 +291,7 @@ public class HeapFile<T extends IData<T>> {
         this.freeBlocks.delete(mi);
     }
 
-    public void setBlockAsFull(int blockAddress) {
+    private void setBlockAsFull(int blockAddress) {
         if (!this.freeBlocksManagement) {
             return;
         }

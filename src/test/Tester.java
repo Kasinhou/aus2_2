@@ -104,7 +104,7 @@ public class Tester {
         linHash.open();
         ArrayList<Patient> patients = new ArrayList<>();
         Generator generator = new Generator(null, null);
-        int insertCount = 0, deleteCount = 0, getCount = 0;
+        int insertCount = 0, deleteCount = 0, getCount = 0, editCount = 0;
         Random random = new Random();
         for (int s = 0; s < 10; ++s) {
             random.setSeed(s);
@@ -112,7 +112,7 @@ public class Tester {
             for (int i = 0; i < 1000; ++i) {
 //                System.out.println(i);
                 double r = random.nextDouble();
-                if (r < 0.35) {//GET
+                if (r < 0.15) {//GET
                     if (patients.isEmpty()) {
                         continue;
                     }
@@ -125,6 +125,29 @@ public class Tester {
                     }
                     ++getCount;
 
+                } else if (r < 0.35) {//EDIT
+                    if (patients.isEmpty()) {
+                        continue;
+                    }
+                    Patient patient = generator.generatePatient();
+                    int getIndex = random.nextInt(patients.size());
+                    if (linHash.edit(new Patient(patient.getName(), patient.getSurname(), patient.getDateOfBirth(), patients.get(getIndex).getPersonID()))) {
+                        Patient edited = linHash.get(new Patient("", "", null, patients.get(getIndex).getPersonID()));
+                        if (edited == null) {
+                            sb.append("\nIndex = ").append(i).append(", Edited patient in linear hashing is not found after edit data.");
+                        } else {
+                            if (!patient.getName().equals(edited.getName()) || !patient.getSurname().equals(edited.getSurname()) || !patient.getDateOfBirth().equals(edited.getDateOfBirth())) {
+                                sb.append("\nIndex = ").append(i).append(", Edited patient in linear hashing is not actually edited, or is edited incorrect.");
+                                sb.append("\nPatient with this id was not found: ").append(patient.getPersonID()).append("\nedited: ").append(edited.getOutput()).append("\ngenerated: ").append(patient.getOutput());
+                            } else {
+                                patients.add(new Patient(edited.getName(), edited.getSurname(), edited.getDateOfBirth(), patients.get(getIndex).getPersonID()));
+                                patients.remove(getIndex);
+                                ++editCount;
+                            }
+                        }
+                    } else {
+                        System.out.println("Edit return false even though the patient should be edited.");
+                    }
                 } else if (r < 0.35) { //DELETE - zatial neimplementovany
                 } else {//INSERT
                     Patient patient = generator.generatePatient();
@@ -156,6 +179,7 @@ public class Tester {
         sb.append("\nNumber of insertion: ").append(insertCount);
         sb.append("\nNumber of deletion: ").append(deleteCount);
         sb.append("\nNumber of get: ").append(getCount);
+        sb.append("\nNumber of edit: ").append(editCount);
         sb.append("\nNumber of valid data: ").append(linHash.getAllValidData().size());
         sb.append("\nNumber of patients: ").append(patients.size());
         sb.append("\n\nOutput\n").append(linHash.getOutput());
