@@ -200,14 +200,13 @@ public class LinearHashing<T extends IData<T>> {
         int mainBF = this.mainFile.getBlockFactor();
         int overflowBF = this.overflowFile.getBlockFactor();
 
-        double density = (double) (insertedMainCount + insertedOverflowCount) / ((mainBC * mainBF) + (overflowBC * overflowBF));
         double densityMain = (double) insertedMainCount / (mainBC * mainBF);
         double densityOverflow = 0.0;
         if (overflowBC != 0) {
             densityOverflow = (double) insertedOverflowCount / (overflowBC * overflowBF);
         }
 
-        return (density > 0.8 && densityMain > 0.85) || (densityOverflow > 0.5 && densityMain > 0.8) || (insertedOverflowCount > (0.3 * mainBC * mainBF));
+        return densityMain > 0.85 || (densityOverflow > 0.5 && densityMain > 0.75) || (insertedOverflowCount > (0.3 * mainBC * mainBF));
     }
 
     // splitting block in case if the conditions are true
