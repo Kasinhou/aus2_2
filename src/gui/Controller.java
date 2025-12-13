@@ -61,7 +61,17 @@ public class Controller {
     }
 
     private void handleOpenButton() {
-        String message = this.who.open(this.view.getConfig().trim());
+        int mp, op, mt, ot;
+        try {
+            mp = Integer.parseInt(this.view.getClusterSizeMP());
+            op = Integer.parseInt(this.view.getClusterSizeOP());
+            mt = Integer.parseInt(this.view.getClusterSizeMT());
+            ot = Integer.parseInt(this.view.getClusterSizeOT());
+        } catch (NumberFormatException e) {
+            this.view.getOutputArea().setText("Use integer for cluster sizes.");
+            return;
+        }
+        String message = this.who.open(this.view.getConfig().trim(), mp, op, mt, ot);
         this.view.getOutputArea().setText(message);
     }
 

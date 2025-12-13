@@ -19,6 +19,11 @@ public class View extends JFrame {
     private JTextField testValue;
     private JTextField note;
 
+    private JTextField clusterSizeMP;
+    private JTextField clusterSizeOP;
+    private JTextField clusterSizeMT;
+    private JTextField clusterSizeOT;
+
     private JButton generateButton;
     private JButton clearButton;
     private JButton outputPatientsButton;
@@ -64,16 +69,27 @@ public class View extends JFrame {
         this.openButton = new JButton("Open");
         this.loadButton = new JButton("Load");
         this.closeButton = new JButton("Close");
-        fileButtons.add(new JLabel("FILE:"));
+        this.config = new JTextField(10);
         fileButtons.add(this.openButton);
         fileButtons.add(this.loadButton);
         fileButtons.add(this.closeButton);
+        fileButtons.add(new JLabel("Config"));
+        fileButtons.add(this.config);
 
-        JPanel files = new JPanel();
-        files.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-        this.config = new JTextField(20);
-        files.add(new JLabel("Config (files)"));
-        files.add(this.config);
+        JPanel clusters = new JPanel();
+        clusters.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        this.clusterSizeMP = new JTextField(5);
+        this.clusterSizeOP = new JTextField(5);
+        this.clusterSizeMT = new JTextField(5);
+        this.clusterSizeOT = new JTextField(5);
+        clusters.add(new JLabel("M.P."));
+        clusters.add(this.clusterSizeMP);
+        clusters.add(new JLabel("O.P."));
+        clusters.add(this.clusterSizeOP);
+        clusters.add(new JLabel("M.T."));
+        clusters.add(this.clusterSizeMT);
+        clusters.add(new JLabel("O.T."));
+        clusters.add(this.clusterSizeOT);
 
         JPanel testButtons = new JPanel();
         testButtons.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -151,7 +167,7 @@ public class View extends JFrame {
 
         leftPanel.add(basicButtons);
         leftPanel.add(fileButtons);
-        leftPanel.add(files);
+        leftPanel.add(clusters);
         leftPanel.add(testButtons);
         leftPanel.add(personInputs);
         leftPanel.add(actionPersonButtons);
@@ -204,6 +220,22 @@ public class View extends JFrame {
 
     public String getConfig() {
         return this.config.getText();
+    }
+
+    public String getClusterSizeMP() {
+        return this.clusterSizeMP.getText();
+    }
+
+    public String getClusterSizeOP() {
+        return this.clusterSizeOP.getText();
+    }
+
+    public String getClusterSizeMT() {
+        return this.clusterSizeMT.getText();
+    }
+
+    public String getClusterSizeOT() {
+        return this.clusterSizeOT.getText();
     }
 
     public void clearInputFields() {

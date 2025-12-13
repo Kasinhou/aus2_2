@@ -100,7 +100,7 @@ public class Tester {
     public String testLinearHashing() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING LINEAR HASHING ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        LinearHashing<Patient> linHash = new LinearHashing<>("src/test/testLHM.bin", 1000, "src/test/testLHMI.bin", "src/test/testLHO.bin", 500, "src/test/testLHOI.bin", Patient.class, "src/test/testLHI.bin");
+        LinearHashing<Patient> linHash = new LinearHashing<>("src/test/testLHM.bin", 500, "src/test/testLHMI.bin", "src/test/testLHO.bin", 1000, "src/test/testLHOI.bin", Patient.class, "src/test/testLHI.bin");
         linHash.open();
         ArrayList<Patient> patients = new ArrayList<>();
         Generator generator = new Generator(null, null);
@@ -170,7 +170,7 @@ public class Tester {
                     List<String> validPatients = validData.stream().map(Patient::getOutput).toList();
                     for (String patient : insertedPatients) {
                         if (!validPatients.contains(patient)) {
-                            sb.append("Index = ").append(i).append("\n").append(patient).append(" is not in list of patients in tester. Something is wrong.");
+                            sb.append("\nIndex = ").append(i).append("\n").append(patient).append(" is not in list of patients in tester. Something is wrong.");
                         }
                     }
                 }

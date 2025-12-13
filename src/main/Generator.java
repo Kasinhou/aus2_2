@@ -109,6 +109,22 @@ public class Generator {
         return new PCRTest(dateTime, personID, testCode, testResult, testValue, note);
     }
 
+    public String getID() {
+        String personID;
+        do {
+            personID = this.faker.lorem().characters(1, 10, true, true);
+        } while (!this.addedPersonID(personID));
+        return personID;
+    }
+
+    public int getCode() {
+        int testCode;
+        do {
+            testCode = this.faker.number().numberBetween(1, Integer.MAX_VALUE);
+        } while (!this.addedTestCode(testCode));
+        return testCode;
+    }
+
     /**
      * Method to find out if the test code is already used.
      */

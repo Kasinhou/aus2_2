@@ -1,14 +1,10 @@
 files/1/lhPatients.bin
 files/1/lhTests.bin
 files/1/mainPatients.bin
-300
 files/1/mainPatientsInfo.bin
 files/1/overflowPatients.bin
-200
 files/1/overflowPatientsInfo.bin
 files/1/mainTests.bin
-800
 files/1/mainTestsInfo.bin
 files/1/overflowTests.bin
-400
 files/1/overflowTestsInfo.bin

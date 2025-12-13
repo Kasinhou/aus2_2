@@ -23,16 +23,12 @@ public class WHOSystem {
     private String lhPatientsPath;
     private String lhTestsPath;
     private String mainPatientsPath;
-    private int mainPatientsClusterSize;
     private String mainPatientsInfoPath;
     private String overflowPatientsPath;
-    private int overflowPatientsClusterSize;
     private String overflowPatientsInfoPath;
     private String mainTestsPath;
-    private int mainTestsClusterSize;
     private String mainTestsInfoPath;
     private String overflowTestsPath;
-    private int overflowTestsClusterSize;
     private String overflowTestsInfoPath;
 
     public WHOSystem() {
@@ -192,19 +188,19 @@ public class WHOSystem {
         return "Generated patients and tests.";
     }
 
-    // Opening new binary file based on config file
-    public String open(String configPath) {
+    // Opening new binary file based on config file todo pozor na otvorenie zleho, popripade otvorenie
+    public String open(String configPath, int clusterMP, int clusterOP, int clusterMT, int clusterOT) {
         if (configPath.isEmpty()) {
             return "You have to fill input path to config with files paths and information what you want to open.";
         }
         try {
             this.loadConfig(configPath);
 
-            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, this.mainPatientsClusterSize,
-                    this.mainPatientsInfoPath, this.overflowPatientsPath, this.overflowPatientsClusterSize,
+            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, clusterMP,
+                    this.mainPatientsInfoPath, this.overflowPatientsPath, clusterOP,
                     this.overflowPatientsInfoPath, Patient.class, this.lhPatientsPath);
-            this.lhTests = new LinearHashing<>(this.mainTestsPath, this.mainTestsClusterSize,
-                    this.mainTestsInfoPath, this.overflowTestsPath, this.overflowTestsClusterSize,
+            this.lhTests = new LinearHashing<>(this.mainTestsPath, clusterMT,
+                    this.mainTestsInfoPath, this.overflowTestsPath, clusterOT,
                     this.overflowTestsInfoPath, PCRTest.class, this.lhTestsPath);
             this.generator = new Generator(this.lhPatients, this.lhTests);
 
@@ -231,18 +227,18 @@ public class WHOSystem {
             
             this.loadConfig(configPath);
 
-            // Check if info files exist (required for loading)
+            // check if info files exist
             if (!new File(mainPatientsInfoPath).exists() || !new File(overflowPatientsInfoPath).exists() ||
                 !new File(mainTestsInfoPath).exists() || !new File(overflowTestsInfoPath).exists()) {
-                return "Error: Info files not found. Use 'Open' to create new files first.\n" +
+                return "Info files not found. You have to open new files first.\n" +
                        "Required info files: " + mainPatientsInfoPath + ", " + overflowPatientsInfoPath +
                        ", " + mainTestsInfoPath + ", " + overflowTestsInfoPath;
             }
 
-            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, this.mainPatientsClusterSize, this.mainPatientsInfoPath,
-                    this.overflowPatientsPath, this.overflowPatientsClusterSize, this.overflowPatientsInfoPath, Patient.class, this.lhPatientsPath);
-            this.lhTests = new LinearHashing<>(this.mainTestsPath, this.mainTestsClusterSize, this.mainTestsInfoPath,
-                    this.overflowTestsPath, this.overflowTestsClusterSize, this.overflowTestsInfoPath, PCRTest.class, this.lhTestsPath);
+            this.lhPatients = new LinearHashing<>(this.mainPatientsPath, 0, this.mainPatientsInfoPath,
+                    this.overflowPatientsPath, 0, this.overflowPatientsInfoPath, Patient.class, this.lhPatientsPath);
+            this.lhTests = new LinearHashing<>(this.mainTestsPath, 0, this.mainTestsInfoPath,
+                    this.overflowTestsPath, 0, this.overflowTestsInfoPath, PCRTest.class, this.lhTestsPath);
             this.generator = new Generator(this.lhPatients, this.lhTests);
 
             this.lhPatients.load();
@@ -263,18 +259,14 @@ public class WHOSystem {
 
             // patients -> main, cluster size, main info, overflow, cluster size, overflow info
             this.mainPatientsPath = configReader.readLine();
-            this.mainPatientsClusterSize = Integer.parseInt(configReader.readLine());
             this.mainPatientsInfoPath = configReader.readLine();
             this.overflowPatientsPath = configReader.readLine();
-            this.overflowPatientsClusterSize = Integer.parseInt(configReader.readLine());
             this.overflowPatientsInfoPath = configReader.readLine();
 
             // tests -> main, cluster size, main info, overflow, cluster size, overflow info
             this.mainTestsPath = configReader.readLine();
-            this.mainTestsClusterSize = Integer.parseInt(configReader.readLine());
             this.mainTestsInfoPath = configReader.readLine();
             this.overflowTestsPath = configReader.readLine();
-            this.overflowTestsClusterSize = Integer.parseInt(configReader.readLine());
             this.overflowTestsInfoPath = configReader.readLine();
 
             return "Loaded paths and info from config: " + configPath;
