@@ -240,6 +240,10 @@ public class View extends JFrame {
 
     public void clearInputFields() {
         this.config.setText("");
+        this.clusterSizeMP.setText("");
+        this.clusterSizeOP.setText("");
+        this.clusterSizeMT.setText("");
+        this.clusterSizeOT.setText("");
         this.personName.setText("");
         this.personSurname.setText("");
         this.personBirthday.setText("");

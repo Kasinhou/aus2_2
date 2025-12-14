@@ -36,6 +36,7 @@ public class WHOSystem {
 
     // Insert patient with user inputs to LH if everything is fine
     public String insertPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
+//        personID = this.generator.getID();
         if (personID.isEmpty() || name.isEmpty() || surname.isEmpty()) {
             return "Please fill all info about patient.";
         }
@@ -111,6 +112,7 @@ public class WHOSystem {
         if (patient == null) {
             return "Not possible to connect test to patient. Patient with id " + personID + " was not found.";
         }
+//        testCode = this.generator.getCode();
         if (!patient.addTest(testCode)) {
             return "Not possible to add test to patient. Patient with id " + personID + " has already 6 tests.";
         }

@@ -13,8 +13,8 @@ import java.util.ArrayList;
  * Generator to filled db system with fake data.
  */
 public class Generator {
-    private static final int PEOPLE_COUNT = 500;
-    private static final int TESTS_COUNT = 2000;
+    private static final int PEOPLE_COUNT = 50;
+    private static final int TESTS_COUNT = 50;
 
     private LinearHashing<Patient> lhPatients;
     private LinearHashing<PCRTest> lhTests;

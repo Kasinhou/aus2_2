@@ -100,13 +100,13 @@ public class Tester {
     public String testLinearHashing() {
         StringBuilder sb = new StringBuilder();
         sb.append("TESTING LINEAR HASHING ON RANDOM OPERATIONS\nIf you see some error or warning messages, something is wrong.\n");
-        LinearHashing<Patient> linHash = new LinearHashing<>("src/test/testLHM.bin", 500, "src/test/testLHMI.bin", "src/test/testLHO.bin", 1000, "src/test/testLHOI.bin", Patient.class, "src/test/testLHI.bin");
+        LinearHashing<Patient> linHash = new LinearHashing<>("src/test/testLHM.bin", 500, "src/test/testLHMI.bin", "src/test/testLHO.bin", 750, "src/test/testLHOI.bin", Patient.class, "src/test/testLHI.bin");
         linHash.open();
         ArrayList<Patient> patients = new ArrayList<>();
         Generator generator = new Generator(null, null);
         int insertCount = 0, deleteCount = 0, getCount = 0, editCount = 0;
         Random random = new Random();
-        for (int s = 0; s < 10; ++s) {
+        for (int s = 0; s < 15; ++s) {
             random.setSeed(s);
             System.out.println(s);
             for (int i = 0; i < 1000; ++i) {
@@ -146,7 +146,7 @@ public class Tester {
                             }
                         }
                     } else {
-                        System.out.println("Edit return false even though the patient should be edited.");
+                        sb.append("\nEdit return false even though the patient should be edited. Probably the patient is not found.");
                     }
                 } else if (r < 0.35) { //DELETE - zatial neimplementovany
                 } else {//INSERT
@@ -160,7 +160,7 @@ public class Tester {
                     patients.add(patient);
                     ++insertCount;
                 }
-                if (i % 900 == 0) {
+                if (i % 400 == 0) {
                     ArrayList<Patient> validData = linHash.getAllValidData();
                     if (validData.size() != patients.size()) {
                         sb.append("\nIndex = ").append(i).append(", Size of valid data in linear hashing is not equal the size of patients in tester!");
@@ -170,7 +170,7 @@ public class Tester {
                     List<String> validPatients = validData.stream().map(Patient::getOutput).toList();
                     for (String patient : insertedPatients) {
                         if (!validPatients.contains(patient)) {
-                            sb.append("\nIndex = ").append(i).append("\n").append(patient).append(" is not in list of patients in tester. Something is wrong.");
+                            sb.append("\nIndex = ").append(i).append(" - ").append(patient).append(" is not in list of patients in tester. Something is wrong.");
                         }
                     }
                 }
