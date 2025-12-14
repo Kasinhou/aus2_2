@@ -44,7 +44,7 @@ public class Generator {
      * Generate patient with random attributes using faker and according rules.
      */
     public Patient generatePatient() {
-        String name, surname, personID;
+        String name, surname;
         LocalDate date;
         do {
             name = faker.name().firstName();
@@ -56,9 +56,7 @@ public class Generator {
                 .toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
-        do {
-            personID = this.faker.lorem().characters(1, 10, true, true);
-        } while (!this.addedPersonID(personID));
+        String personID = this.getID();
 
         return new Patient(name, surname, date, personID);
     }
@@ -86,12 +84,9 @@ public class Generator {
     public PCRTest generateTest() {
         String personID, note;
         LocalDateTime dateTime;
-        int testCode;
         boolean testResult;
         double testValue;
-        do {
-            testCode = this.faker.number().numberBetween(1, Integer.MAX_VALUE);
-        } while (!this.addedTestCode(testCode));
+        int testCode = this.getCode();
         dateTime = faker.date().between(Date.valueOf("1945-01-01"), Date.valueOf("2025-11-21"))
                 .toInstant()
                 .atZone(ZoneId.systemDefault())
@@ -109,6 +104,9 @@ public class Generator {
         return new PCRTest(dateTime, personID, testCode, testResult, testValue, note);
     }
 
+    /**
+     * Method to get unique patient ID.
+     */
     public String getID() {
         String personID;
         do {
@@ -117,6 +115,9 @@ public class Generator {
         return personID;
     }
 
+    /**
+     * Method to get unique test code.
+     */
     public int getCode() {
         int testCode;
         do {

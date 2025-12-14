@@ -35,8 +35,8 @@ public class WHOSystem {
     }
 
     // Insert patient with user inputs to LH if everything is fine
-    public String insertPatient(String name, String surname, LocalDate dateOfBirth, String personID) {
-//        personID = this.generator.getID();
+    public String insertPatient(String name, String surname, LocalDate dateOfBirth) {
+        String personID = this.generator.getID();
         if (personID.isEmpty() || name.isEmpty() || surname.isEmpty()) {
             return "Please fill all info about patient.";
         }
@@ -101,7 +101,7 @@ public class WHOSystem {
     }
 
     // Insert test with user inputs to LH if everything is fine
-    public String insertTest(LocalDateTime dateTime, String personID, int testCode, boolean testResult, double testValue, String note) {
+    public String insertTest(LocalDateTime dateTime, String personID, boolean testResult, double testValue, String note) {
         if (personID.isEmpty()) {
             return "Please fill patient ID.";
         }
@@ -112,7 +112,7 @@ public class WHOSystem {
         if (patient == null) {
             return "Not possible to connect test to patient. Patient with id " + personID + " was not found.";
         }
-//        testCode = this.generator.getCode();
+        int testCode = this.generator.getCode();
         if (!patient.addTest(testCode)) {
             return "Not possible to add test to patient. Patient with id " + personID + " has already 6 tests.";
         }
@@ -190,7 +190,7 @@ public class WHOSystem {
         return "Generated patients and tests.";
     }
 
-    // Opening new binary file based on config file todo pozor na otvorenie zleho, popripade otvorenie
+    // Opening new binary file based on config file
     public String open(String configPath, int clusterMP, int clusterOP, int clusterMT, int clusterOT) {
         if (configPath.isEmpty()) {
             return "You have to fill input path to config with files paths and information what you want to open.";

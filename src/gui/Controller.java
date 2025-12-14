@@ -103,7 +103,7 @@ public class Controller {
             this.view.getOutputArea().setText("Date of birth is in wrong format. Use YYYY-MM-DD");
             return;
         }
-        String message = this.who.insertPatient(this.view.getPersonName(), this.view.getPersonSurname(), date, this.view.getPersonID());
+        String message = this.who.insertPatient(this.view.getPersonName(), this.view.getPersonSurname(), date);
         this.view.getOutputArea().setText(message);
     }
 
@@ -129,11 +129,9 @@ public class Controller {
 
     private void handleInsertTestButton() {
         LocalDateTime date;
-        int code;
         boolean result;
         double value;
         try {
-            code = Integer.parseInt(this.view.getTestCode());
             value = Double.parseDouble(this.view.getTestValue());
         } catch (NumberFormatException e) {
             this.view.getOutputArea().setText("Use integer for test code and double for test value.");
@@ -146,7 +144,7 @@ public class Controller {
             return;
         }
         result = Boolean.parseBoolean(this.view.getTestResult());
-        String message = this.who.insertTest(date, this.view.getTestPersonID(), code, result, value, this.view.getNote());
+        String message = this.who.insertTest(date, this.view.getTestPersonID(), result, value, this.view.getNote());
         this.view.getOutputArea().setText(message);
     }
 
